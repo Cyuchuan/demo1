@@ -12,6 +12,9 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
+import com.cyc.demo1.dto.Pojo;
+import com.cyc.demo1.eventservice.A;
+import com.cyc.demo1.eventservice.B;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.core.annotation.AnnotationUtils;

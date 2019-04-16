@@ -1,7 +1,10 @@
-package com.cyc.demo1;
+package com.cyc.demo1.dto;
 
 import java.lang.invoke.MethodHandles;
 
+import com.cyc.demo1.validation.ErrorPrefixField;
+import com.cyc.demo1.enumeration.FileTypeEnumeration;
+import com.cyc.demo1.validation.ValidationField;
 import lombok.Data;
 
 /**

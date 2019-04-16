@@ -1,6 +1,6 @@
 package com.cyc.demo1.entity;
 
-import com.cyc.demo1.ValidationField;
+import com.cyc.demo1.validation.ValidationField;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Email;

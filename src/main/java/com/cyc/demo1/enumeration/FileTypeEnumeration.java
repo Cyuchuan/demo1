@@ -1,4 +1,4 @@
-package com.cyc.demo1;
+package com.cyc.demo1.enumeration;
 
 public enum FileTypeEnumeration {
     SHEHUIZHUYI("1", "社会主义"), ZIBENZHUYI("2", "资本主义");

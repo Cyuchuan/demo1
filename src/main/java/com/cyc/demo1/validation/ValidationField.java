@@ -1,4 +1,4 @@
-package com.cyc.demo1;
+package com.cyc.demo1.validation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

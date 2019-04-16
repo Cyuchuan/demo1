@@ -4,7 +4,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.stereotype.Component;
 
-import com.cyc.demo1.A;
+import com.cyc.demo1.eventservice.A;
 
 import lombok.extern.slf4j.Slf4j;
 

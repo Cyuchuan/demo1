@@ -1,10 +1,5 @@
 package com.cyc.demo1;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import com.cyc.demo1.enhance.SignalInterfaceA;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -13,6 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
+
+import com.cyc.demo1.enhance.SignalInterfaceA;
+import com.cyc.demo1.eventservice.A;
 
 import lombok.extern.slf4j.Slf4j;
 

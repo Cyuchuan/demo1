@@ -1,5 +1,6 @@
-package com.cyc.demo1;
+package com.cyc.demo1.dto;
 
+import com.cyc.demo1.validation.ErrorPrefixField;
 import lombok.Data;
 import lombok.ToString;
 

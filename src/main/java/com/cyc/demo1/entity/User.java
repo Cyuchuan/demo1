@@ -10,7 +10,6 @@ import javax.validation.constraints.Past;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import com.cyc.demo1.ValidationField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Data;
