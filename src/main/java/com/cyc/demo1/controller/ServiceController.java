@@ -63,7 +63,6 @@ public class ServiceController {
 
     @RequestMapping("test1")
     public String test1() {
-        String s = new String("test1");
         String hhhh = new String("hhhh");
         return hhhh;
     }
