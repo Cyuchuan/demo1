@@ -9,6 +9,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+import com.cyc.demo1.config.MyConfig;
 import com.cyc.demo1.enhance.SignalInterfaceA;
 import com.cyc.demo1.eventservice.A;
 
@@ -25,14 +26,19 @@ public class Demo1Application implements CommandLineRunner {
     A thisIsTest;
 
     @Autowired
+    MyConfig myConfig;
+
+    @Autowired
     SignalInterfaceA signalInterfaceA;
 
     public static void main(String[] args) {
         ConfigurableApplicationContext run = SpringApplication.run(Demo1Application.class, args);
+
     }
 
     @Override
     public void run(String... args) throws Exception {
         signalInterfaceA.doSomething();
+        log.error("{}", myConfig);
     }
 }
