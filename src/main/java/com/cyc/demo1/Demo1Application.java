@@ -3,6 +3,8 @@ package com.cyc.demo1;
 import com.cyc.demo1.config.MyConfig;
 import com.cyc.demo1.enhance.SignalInterfaceA;
 import com.cyc.demo1.eventservice.A;
+import com.cyc.demo1.waittoadvice.AnnotationAdviceService;
+import com.cyc.demo1.waittoadvice.Aservice;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,12 @@ public class Demo1Application implements CommandLineRunner {
     @Autowired
     SignalInterfaceA signalInterfaceA;
 
+    @Autowired
+    Aservice aservice;
+
+    @Autowired
+    AnnotationAdviceService annotationAdviceService;
+
     public static void main(String[] args) {
         ConfigurableApplicationContext run = SpringApplication.run(Demo1Application.class, args);
 
@@ -38,5 +46,9 @@ public class Demo1Application implements CommandLineRunner {
     public void run(String... args) throws Exception {
         signalInterfaceA.doSomething();
         log.error("{}", myConfig);
+        aservice.serviceA1();
+        annotationAdviceService.annotationAdviceService();
+        annotationAdviceService.exceptionService();
+
     }
 }

@@ -1,13 +1,11 @@
 package com.cyc.demo1.waittoadvice;
 
-import org.springframework.aop.framework.AopProxyUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author chenyuchuan
@@ -27,11 +25,20 @@ public class Aservice implements ApplicationContextAware {
         log.error("是aop对象{}", aopProxy);
         Aservice bean = applicationContext.getBean(Aservice.class);
         bean.seviceA();
-
+        bean.privateMethod();
+        bean.protectedMethod();
     }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    private void privateMethod() {
+        log.error("这是一个private方法");
+    }
+
+    protected void protectedMethod() {
+        log.error("这是一个protectMethod方法");
     }
 }
