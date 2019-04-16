@@ -48,7 +48,7 @@ public class Demo1Application implements CommandLineRunner {
         log.error("{}", myConfig);
         aservice.serviceA1();
         annotationAdviceService.annotationAdviceService();
-        annotationAdviceService.exceptionService();
+        annotationAdviceService.exceptionService("hello");
 
     }
 }

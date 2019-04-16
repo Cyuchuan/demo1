@@ -17,8 +17,8 @@ public class AnnotationAdviceService {
     }
 
     @AnnotationToAdvice
-    public void exceptionService() {
-        log.error("进行exceptionService服务");
+    public void exceptionService(String s) {
+        log.error("进行exceptionService服务,{}", s);
         throw new RuntimeException("运行时异常");
     }
 }

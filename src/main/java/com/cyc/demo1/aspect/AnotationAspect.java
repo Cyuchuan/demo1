@@ -19,8 +19,8 @@ public class AnotationAspect {
         log.error("带特定注解的前置增强");
     }
 
-    @Around("@annotation(AnnotationToAdvice)")
-    public void annotationAfterError(ProceedingJoinPoint proceedingJoinPoint) {
+    @Around(value = "@annotation(AnnotationToAdvice)&& args(s,..)")
+    public void annotationAfterError(ProceedingJoinPoint proceedingJoinPoint, String s) {
         try {
             proceedingJoinPoint.proceed();
         } catch (Throwable e1) {
