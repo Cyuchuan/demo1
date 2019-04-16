@@ -1,7 +1,6 @@
 package com.cyc.demo1.controller;
 
-import java.net.URL;
-
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +12,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import lombok.extern.slf4j.Slf4j;
+import java.net.URL;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -37,10 +36,16 @@ public class ServiceControllerTest {
         ResponseEntity<String> forEntity = template.getForEntity(base.toString() + "/test", String.class);
         log.error("请求的url:{}", base);
         log.error("相应的header:{} status:{} body:{}", forEntity.getHeaders(), forEntity.getStatusCode(),
-            forEntity.getBody());
+                forEntity.getBody());
         Assert.assertEquals("test", forEntity.getBody());
     }
 
     @Test
-    public void test1() {}
+    public void runtimeExceptionTest() {
+        ResponseEntity<String> forEntity = template.getForEntity(base.toString() + "/runtime", String.class);
+        log.error("请求的url:{}", base);
+        log.error("相应的header:{} status:{} body:{}", forEntity.getHeaders(), forEntity.getStatusCode(),
+                forEntity.getBody());
+        Assert.assertEquals("出现了运行时异常", forEntity.getBody());
+    }
 }

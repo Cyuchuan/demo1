@@ -1,18 +1,16 @@
 package com.cyc.demo1.controller;
 
-import javax.validation.Validator;
-
+import com.cyc.demo1.dto.Result;
+import com.cyc.demo1.entity.User;
+import com.cyc.demo1.entity.User3;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cyc.demo1.dto.Result;
-import com.cyc.demo1.entity.User;
-import com.cyc.demo1.entity.User3;
-
-import lombok.extern.slf4j.Slf4j;
+import javax.validation.Validator;
 
 /**
  * @author chenyuchuan
@@ -71,5 +69,10 @@ public class ServiceController {
     public String test2() {
         String s = new String("test1----123321");
         return s;
+    }
+
+    @RequestMapping("runtime")
+    public String runtimeExceptionTest() {
+        throw new RuntimeException("出现了运行时异常");
     }
 }
