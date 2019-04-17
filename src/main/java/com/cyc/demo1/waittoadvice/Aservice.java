@@ -1,18 +1,19 @@
 package com.cyc.demo1.waittoadvice;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author chenyuchuan
  */
 @Component
 @Slf4j
-public class Aservice implements ApplicationContextAware {
+public class Aservice {
+    @Autowired
     ApplicationContext applicationContext;
 
     public void seviceA() {
@@ -27,11 +28,6 @@ public class Aservice implements ApplicationContextAware {
         bean.seviceA();
         bean.privateMethod();
         bean.protectedMethod();
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 
     private void privateMethod() {

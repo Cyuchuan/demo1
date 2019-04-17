@@ -12,15 +12,15 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
-import com.cyc.demo1.dto.Pojo;
-import com.cyc.demo1.eventservice.A;
-import com.cyc.demo1.eventservice.B;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 
+import com.cyc.demo1.dto.Pojo;
 import com.cyc.demo1.entity.User3;
+import com.cyc.demo1.eventservice.A;
+import com.cyc.demo1.eventservice.B;
 import com.cyc.demo1.exception.NoBatchProcessException;
 import com.cyc.demo1.listener.CustomListener1;
 import com.cyc.demo1.listener.Service;
@@ -286,5 +286,13 @@ public class NormalTest {
             node4.getName(), node4.getMaxBlockSize(), node5.getName(), node5.getMaxBlockSize(), node6.getName(),
             node6.getMaxBlockSize(), node7.getName(), node7.getMaxBlockSize(), node8.getName(), node8.getMaxBlockSize(),
             node9.getName(), node9.getMaxBlockSize(), node10.getName(), node10.getMaxBlockSize());
+    }
+
+    @Test
+    public void splitTest() {
+
+        String s = "a,b,c,,";
+        String[] split = s.split(",");
+        log.error("{}  {}", split.length, split);
     }
 }
