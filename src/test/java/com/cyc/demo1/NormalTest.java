@@ -1,9 +1,13 @@
 package com.cyc.demo1;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -294,5 +298,16 @@ public class NormalTest {
         String s = "a,b,c,,";
         String[] split = s.split(",");
         log.error("{}  {}", split.length, split);
+    }
+
+    @Test
+    public void encodeTest() throws Exception {
+        InputStream inputStream = this.getClass().getClassLoader().getResource("test.txt").openStream();
+
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("GBK")));
+
+        log.error("{}", bufferedReader.readLine());
+
+        bufferedReader.close();
     }
 }
