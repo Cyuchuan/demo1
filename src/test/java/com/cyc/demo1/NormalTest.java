@@ -1,13 +1,19 @@
 package com.cyc.demo1;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -20,6 +26,7 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.ClassPathResource;
 
 import com.cyc.demo1.dto.Pojo;
 import com.cyc.demo1.entity.User3;
@@ -309,5 +316,37 @@ public class NormalTest {
         log.error("{}", bufferedReader.readLine());
 
         bufferedReader.close();
+    }
+
+    @Test
+    public void append() throws IOException {
+        String baseUrl = "http://123456.2123156.46";
+        log.error("{}", baseUrl + '/');
+
+        log.error("{}", UUID.randomUUID().toString().replaceAll("-", ""));
+        log.error("{}", UUID.randomUUID().toString());
+        int i = baseUrl.lastIndexOf(".");
+        log.error("{}", baseUrl.substring(i));
+
+        ClassPathResource classPathResource = new ClassPathResource("classpath:template/xxxxx");
+
+        InputStream inputStream = classPathResource.getInputStream();
+    }
+
+    @Test
+    public void unTarTest() throws IOException, URISyntaxException {
+
+        Path test = Paths.get("C:\\Users\\40493\\Desktop\\github\\demo1\\target\\test-classes\\test");
+        log.error("{}", test.toAbsolutePath());
+
+        DirectoryStream<Path> paths = Files.newDirectoryStream(test);
+
+        for (Path path : paths) {
+            log.error("是否是目录:{}", Files.isDirectory(path));
+
+            log.error("{}", path.getFileName());
+            log.error("文件内容为：{}", Files.newBufferedReader(path).readLine());
+
+        }
     }
 }
