@@ -1,9 +1,6 @@
 package com.cyc.demo1;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -348,5 +345,47 @@ public class NormalTest {
             log.error("文件内容为：{}", Files.newBufferedReader(path).readLine());
 
         }
+
+    }
+
+    @Test
+    public void testFile() throws Exception {
+        String inputFile = this.getClass().getClassLoader().getResource("test.txt").getPath();
+        BufferedReader bufferedReader = Files.newBufferedReader(Paths.get(inputFile.substring(1)));
+
+        Path dir = Paths.get(".", UUID.randomUUID().toString());
+        if (!Files.exists(dir)) {
+            Files.createDirectory(dir);
+        }
+
+        Path tempFile = dir.resolve(UUID.randomUUID().toString());
+        if (!Files.exists(tempFile)) {
+            Files.createFile(tempFile);
+
+        }
+
+        BufferedWriter bufferedWriter = Files.newBufferedWriter(tempFile);
+        log.error("{}", bufferedWriter);
+        String temp;
+        while ((temp = bufferedReader.readLine()) != null) {
+            if ("".equals(temp)) {
+                continue;
+            }
+
+            log.error("{}", temp);
+            bufferedWriter.append(temp);
+            bufferedWriter.newLine();
+        }
+
+        bufferedWriter.flush();
+        bufferedReader.close();
+        bufferedWriter.close();
+
+        Thread.sleep(1000);
+        Files.delete(tempFile);
+        Thread.sleep(2000);
+
+        Files.deleteIfExists(dir);
+
     }
 }
