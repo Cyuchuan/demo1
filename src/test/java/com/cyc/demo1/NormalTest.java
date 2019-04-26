@@ -19,6 +19,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
+import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -387,5 +388,18 @@ public class NormalTest {
 
         Files.deleteIfExists(dir);
 
+    }
+
+    @Test
+    public void classPathIOTest() throws IOException {
+        ClassPathResource classPathResource = new ClassPathResource("test.txt");
+        InputStream inputStream = classPathResource.getInputStream();
+        BufferedReader buffer = IOUtils.buffer(new InputStreamReader(inputStream));
+
+        String temp;
+
+        while ((temp = buffer.readLine()) != null) {
+            log.error("{}", temp);
+        }
     }
 }
