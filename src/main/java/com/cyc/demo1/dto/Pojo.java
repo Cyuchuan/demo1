@@ -1,16 +1,22 @@
 package com.cyc.demo1.dto;
 
-import java.lang.invoke.MethodHandles;
-
-import com.cyc.demo1.validation.ErrorPrefixField;
 import com.cyc.demo1.enumeration.FileTypeEnumeration;
+import com.cyc.demo1.validation.ErrorPrefixField;
 import com.cyc.demo1.validation.ValidationField;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.lang.invoke.MethodHandles;
 
 /**
  * @author chenyuchuan
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @ErrorPrefixField({"id", "fileName"})
 public class Pojo {
     private String notValidation;
