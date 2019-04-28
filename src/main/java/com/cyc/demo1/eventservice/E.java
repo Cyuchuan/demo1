@@ -1,6 +1,6 @@
 package com.cyc.demo1.eventservice;
 
-import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.cyc.demo1.event.AfterADoneEvent;
@@ -13,16 +13,16 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class C implements Service, ApplicationListener<AfterADoneEvent> {
+public class E implements Service {
 
     @Override
     public void service() {
-        log.error("进行C服务");
+        log.error("进行E服务");
     }
 
-    @Override
+    @EventListener
     public void onApplicationEvent(AfterADoneEvent afterADoneEvent) {
-        log.error("A服务提供的对象为：{} 完成的时间为{}",afterADoneEvent.getSource(),afterADoneEvent.getTimestamp());
+        log.error("A服务提供的对象为：{} 完成的时间为{}", afterADoneEvent.getSource(), afterADoneEvent.getTimestamp());
         service();
     }
 }

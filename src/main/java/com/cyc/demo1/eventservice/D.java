@@ -21,7 +21,6 @@ public class D implements Service, ApplicationListener<AfterADoneEvent> {
     }
 
     @Override
-    // @Async
     public void onApplicationEvent(AfterADoneEvent afterADoneEvent) {
         log.error("A服务提供的对象为：{} 完成的时间为{}", afterADoneEvent.getSource(), afterADoneEvent.getTimestamp());
         service();

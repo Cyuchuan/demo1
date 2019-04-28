@@ -53,9 +53,7 @@ public class Demo1Application implements CommandLineRunner {
         signalInterfaceA.doSomething();
         log.error("{}", myConfig);
         log.error("{}", myConfigInMyProperties);
-        aservice.serviceA1();
-        annotationAdviceService.annotationAdviceService();
         annotationAdviceService.exceptionService("hello");
-
+        thisIsTest.service();
     }
 }
