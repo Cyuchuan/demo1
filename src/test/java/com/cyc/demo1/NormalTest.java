@@ -402,4 +402,11 @@ public class NormalTest {
             log.error("{}", temp);
         }
     }
+
+    @Test
+    public void compressorTest() throws Exception {
+        // List<String> testZip = CompressorUtil.unZip(new File("./test.zip"), "testZip");
+        // log.error("{}",testZip);
+
+    }
 }
