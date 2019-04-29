@@ -48,38 +48,12 @@ public class CompressorUtil {
 
         String packageType = getSrcFileType(packagedFile);
 
-        List<File> unPackageFiles = new ArrayList<>(10);
-
         try (InputStream inputStream = Files.newInputStream(packagedFile.toPath());
 
             ArchiveInputStream archiveInputStream =
                 ARCHIVE_FACTORY.createArchiveInputStream(packageType, inputStream)) {
-            ArchiveEntry entry;
-            while ((entry = archiveInputStream.getNextEntry()) != null) {
-                if (!archiveInputStream.canReadEntryData(entry)) {
-                    throw new RuntimeException("归档文件zip：" + packagedFile.getAbsolutePath() + " 不可读");
-                }
 
-                // 将写入的文件
-                File entryToFile = entryToFile(dir, entry);
-
-                // entry是目录
-                if (entry.isDirectory()) {
-                    if (!entryToFile.exists() && !entryToFile.mkdirs()) {
-                        throw new RuntimeException("目录entryToFile：" + entryToFile.getAbsolutePath() + " 无法创建");
-                    }
-
-                } else {
-                    // entry是文件
-                    try (OutputStream outputStream = Files.newOutputStream(entryToFile.toPath())) {
-                        IOUtils.copy(archiveInputStream, outputStream);
-                    }
-                }
-
-                unPackageFiles.add(entryToFile);
-            }
-
-            return unPackageFiles;
+            return resolveArchive(packagedFile, dir, archiveInputStream);
         } catch (ArchiveException e) {
             log.error("{}", e);
             throw new RuntimeException("归档文件异常 " + e.getMessage());
@@ -125,6 +99,70 @@ public class CompressorUtil {
             log.error("{}", e);
             throw new RuntimeException("io操作异常 " + e.getMessage());
         }
+    }
+
+    /**
+     * 解压tar.gz文件
+     * 
+     * @param gzFile
+     *            tar.gz 文件
+     * @param dir
+     *            目标目录
+     * @return 解压缩后的所有File对象，包含目录
+     */
+    public static List<File> unCompressGZ(File gzFile, File dir) {
+        checkArgsAndMkDir(gzFile, dir);
+
+        try (InputStream inputStream = Files.newInputStream(gzFile.toPath());
+
+            CompressorInputStream compressorInputStream =
+                COMPRESSOR_FACTORY.createCompressorInputStream(CompressorStreamFactory.GZIP, inputStream);
+
+            ArchiveInputStream archiveInputStream =
+                ARCHIVE_FACTORY.createArchiveInputStream(ArchiveStreamFactory.TAR, compressorInputStream)) {
+
+            return resolveArchive(gzFile, dir, archiveInputStream);
+        } catch (ArchiveException e) {
+            log.error("{}", e);
+            throw new RuntimeException("归档文件异常 " + e.getMessage());
+        } catch (CompressorException e) {
+            log.error("{}", e);
+            throw new RuntimeException("压缩文件异常 " + e.getMessage());
+        } catch (IOException e) {
+            log.error("{}", e);
+            throw new RuntimeException("io操作异常 " + e.getMessage());
+        }
+    }
+
+    private static List<File> resolveArchive(File srcFile, File dir, ArchiveInputStream archiveInputStream)
+        throws IOException {
+        List<File> resolveFiles = new ArrayList<>(10);
+
+        ArchiveEntry entry;
+        while ((entry = archiveInputStream.getNextEntry()) != null) {
+            if (!archiveInputStream.canReadEntryData(entry)) {
+                throw new RuntimeException("归档文件：" + srcFile.getAbsolutePath() + " 不可读");
+            }
+
+            // 将写入的文件
+            File entryToFile = entryToFile(dir, entry);
+
+            // entry是目录
+            if (entry.isDirectory()) {
+                if (!entryToFile.exists() && !entryToFile.mkdirs()) {
+                    throw new RuntimeException("目录entryToFile：" + entryToFile.getAbsolutePath() + " 无法创建");
+                }
+
+            } else {
+                // entry是文件
+                try (OutputStream outputStream = Files.newOutputStream(entryToFile.toPath())) {
+                    IOUtils.copy(archiveInputStream, outputStream);
+                }
+            }
+
+            resolveFiles.add(entryToFile);
+        }
+        return resolveFiles;
     }
 
     private static String getSrcFileType(File srcFile) {
