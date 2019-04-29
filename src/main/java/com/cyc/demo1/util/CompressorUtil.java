@@ -1,103 +1,184 @@
 package com.cyc.demo1.util;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.io.IOUtils;
+
+import lombok.extern.slf4j.Slf4j;
+import tk.mybatis.mapper.util.Assert;
 
 /**
  * @author chenyuchuan
  */
+@Slf4j
 public class CompressorUtil {
-    private static final int BUFFER_SIZE = 1024;
 
-    private static final CompressorStreamFactory COMPRESSOR_STREAM_FACTORY = CompressorStreamFactory.getSingleton();
+    private static final CompressorStreamFactory COMPRESSOR_FACTORY = CompressorStreamFactory.getSingleton();
+
+    private static final ArchiveStreamFactory ARCHIVE_FACTORY = new ArchiveStreamFactory();
 
     private CompressorUtil() {
 
     }
 
-    public static void zipDecompress(InputStream inputStream, String dirPath) {
-        try {
-            CompressorInputStream compressorInputStream =
-                COMPRESSOR_STREAM_FACTORY.createCompressorInputStream(inputStream);
+    /**
+     * 解包已经打包的文件，如zip，tar等
+     * 
+     * @param packagedFile
+     *            打包的文件
+     * @param dir
+     *            目标目录
+     * @return 解包后的所有File对象，包含目录
+     */
+    public static List<File> unPackage(File packagedFile, File dir) {
+        checkArgsAndMkDir(packagedFile, dir);
 
-            File file = new File("testZip/");
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
+        String packageType = getSrcFileType(packagedFile);
 
-            byte[] buffer = new byte[4096];
-            int len = -1;
-            while ((len = compressorInputStream.read(buffer)) != -1) {
-                fileOutputStream.write(buffer, 0, len);
-            }
+        List<File> unPackageFiles = new ArrayList<>(10);
 
-            compressorInputStream.close();
-            fileOutputStream.close();
+        try (InputStream inputStream = Files.newInputStream(packagedFile.toPath());
 
-        } catch (CompressorException e) {
-            throw new RuntimeException("解压失败：" + e.getMessage());
-        } catch (IOException e) {
-            throw new RuntimeException("解压失败：" + e.getMessage());
-        }
+            ArchiveInputStream archiveInputStream =
+                ARCHIVE_FACTORY.createArchiveInputStream(packageType, inputStream)) {
+            ArchiveEntry entry;
+            while ((entry = archiveInputStream.getNextEntry()) != null) {
+                if (!archiveInputStream.canReadEntryData(entry)) {
+                    throw new RuntimeException("归档文件zip：" + packagedFile.getAbsolutePath() + " 不可读");
+                }
 
-    }
+                // 将写入的文件
+                File entryToFile = entryToFile(dir, entry);
 
-    public static List<String> unZip(File zipFile, String destDir) throws Exception {
-        // 如果 destDir 为 null, 空字符串, 或者全是空格, 则解压到压缩文件所在目录
-        if (StringUtils.isBlank(destDir)) {
-            destDir = zipFile.getParent();
-        }
-
-        destDir = destDir.endsWith(File.separator) ? destDir : destDir + File.separator;
-        File dir = new File(destDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-
-        ZipArchiveInputStream is = null;
-        List<String> fileNames = new ArrayList<String>();
-
-        try {
-            is = new ZipArchiveInputStream(new BufferedInputStream(new FileInputStream(zipFile), BUFFER_SIZE));
-            ZipArchiveEntry entry = null;
-
-            while ((entry = is.getNextZipEntry()) != null) {
-                fileNames.add(entry.getName());
-
+                // entry是目录
                 if (entry.isDirectory()) {
-                    File directory = new File(destDir, entry.getName());
-                    directory.mkdirs();
-                } else {
-                    OutputStream os = null;
-                    File tempFile = new File(destDir, entry.getName());
-
-                    if (!tempFile.exists()) {
-                        tempFile.createNewFile();
+                    if (!entryToFile.exists() && !entryToFile.mkdirs()) {
+                        throw new RuntimeException("目录entryToFile：" + entryToFile.getAbsolutePath() + " 无法创建");
                     }
 
-                    try {
-                        os = new BufferedOutputStream(new FileOutputStream(tempFile), BUFFER_SIZE);
-                        IOUtils.copy(is, os);
-                    } finally {
-                        IOUtils.closeQuietly(os);
+                } else {
+                    // entry是文件
+                    try (OutputStream outputStream = Files.newOutputStream(entryToFile.toPath())) {
+                        IOUtils.copy(archiveInputStream, outputStream);
                     }
                 }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
 
-        return fileNames;
+                unPackageFiles.add(entryToFile);
+            }
+
+            return unPackageFiles;
+        } catch (ArchiveException e) {
+            log.error("{}", e);
+            throw new RuntimeException("归档文件异常 " + e.getMessage());
+        } catch (IOException e) {
+            log.error("{}", e);
+            throw new RuntimeException("io操作异常 " + e.getMessage());
+        }
     }
 
+    /**
+     * 解压缩压缩后的文件，如gz等
+     * 
+     * @param compressFile
+     *            压缩文件
+     * @param dir
+     *            目标目录
+     * @return 解压缩后的所有File对象，包含目录
+     */
+    public static List<File> unCompress(File compressFile, File dir) {
+        checkArgsAndMkDir(compressFile, dir);
+
+        String simpleName = getSrcFileSimpleName(compressFile);
+        String compressType = getSrcFileType(compressFile);
+
+        List<File> unPackageFiles = new ArrayList<>(10);
+
+        try (InputStream inputStream = Files.newInputStream(compressFile.toPath());
+
+            CompressorInputStream compressorInputStream =
+                COMPRESSOR_FACTORY.createCompressorInputStream(compressType, inputStream)) {
+
+            File target = new File(dir, simpleName);
+            try (OutputStream outputStream = Files.newOutputStream(target.toPath())) {
+                IOUtils.copy(compressorInputStream, outputStream);
+            }
+
+            unPackageFiles.add(target);
+            return unPackageFiles;
+        } catch (CompressorException e) {
+            log.error("{}", e);
+            throw new RuntimeException("压缩文件异常 " + e.getMessage());
+        } catch (IOException e) {
+            log.error("{}", e);
+            throw new RuntimeException("io操作异常 " + e.getMessage());
+        }
+    }
+
+    private static String getSrcFileType(File srcFile) {
+        String name = srcFile.getName();
+        int lastPoint = name.lastIndexOf('.');
+
+        try {
+            return name.substring(lastPoint + 1);
+        } catch (Exception e) {
+            throw new RuntimeException("文件后缀不正确：" + srcFile.getName() + " 无法确定是什么文件类型");
+        }
+    }
+
+    private static String getSrcFileSimpleName(File srcFile) {
+        String name = srcFile.getName();
+        int lastPoint = name.lastIndexOf('.');
+
+        try {
+            return name.substring(0, lastPoint);
+        } catch (Exception e) {
+            throw new RuntimeException("文件后缀不正确：" + srcFile.getName() + " 无法确定是什么文件类型");
+        }
+    }
+
+    private static void checkArgsAndMkDir(File srcFile, File dir) {
+        Assert.notNull(srcFile, "srcFile不能为null");
+        Assert.notNull(dir, "dir不能为null");
+
+        if (!srcFile.exists()) {
+            throw new IllegalArgumentException("不存在该文件srcFile：" + srcFile.getAbsolutePath());
+
+        }
+
+        if (srcFile.isDirectory()) {
+            throw new IllegalArgumentException("srcFile不能是目录文件");
+
+        }
+
+        if (dir.isFile()) {
+            throw new IllegalArgumentException("dir不能是文件");
+
+        }
+
+        // 通过了以上检查说明参数正确
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                throw new RuntimeException("目录dir：" + dir.getAbsolutePath() + " 无法创建");
+            }
+        }
+    }
+
+    private static File entryToFile(File dir, ArchiveEntry entry) {
+        String name = entry.getName();
+        return new File(dir, name);
+
+    }
 }

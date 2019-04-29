@@ -36,6 +36,7 @@ import com.cyc.demo1.listener.Service;
 import com.cyc.demo1.node.Node;
 import com.cyc.demo1.node.Packet;
 import com.cyc.demo1.random.RandomUtil;
+import com.cyc.demo1.util.CompressorUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -405,8 +406,20 @@ public class NormalTest {
 
     @Test
     public void compressorTest() throws Exception {
-        // List<String> testZip = CompressorUtil.unZip(new File("./test.zip"), "testZip");
-        // log.error("{}",testZip);
+        // List<File> test = CompressorUtil.unPackage(new File("TAcctSourceMiRepayInfoMapper.7z"), new File("test"));
 
+        List<File> test = CompressorUtil.unCompress(new File("000000_0(1).gz"), new File("test"));
+        log.error("{}", test);
+    }
+
+    @Test
+    public void fileTest() {
+        File file = new File("123.txt");
+
+        if (file.isFile()) {
+            log.error("file是文件");
+        } else {
+            log.error("file是目录");
+        }
     }
 }
