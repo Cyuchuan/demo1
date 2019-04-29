@@ -110,7 +110,7 @@ public class CompressorUtil {
      *            目标目录
      * @return 解压缩后的所有File对象，包含目录
      */
-    public static List<File> unCompressGZ(File gzFile, File dir) {
+    public static List<File> unCompressTarGZ(File gzFile, File dir) {
         checkArgsAndMkDir(gzFile, dir);
 
         try (InputStream inputStream = Files.newInputStream(gzFile.toPath());
