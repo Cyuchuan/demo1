@@ -406,7 +406,7 @@ public class NormalTest {
 
     @Test
     public void compressorTest() throws Exception {
-        List<File> test = CompressorUtil.unCompressTarGZ(new File("G120150909.tar.gz"), new File("test"));
+        List<File> test = CompressorUtil.unCompressTarGZ(new File("G120150909.tar.gz"), new File("."));
 
         // List<File> test = CompressorUtil.unCompress(new File("000000_0(1).gz"), new File("test"));
         log.error("{}", test);
