@@ -406,10 +406,21 @@ public class NormalTest {
 
     @Test
     public void compressorTest() throws Exception {
-        List<File> test = CompressorUtil.unCompressTarGZ(new File("G120150909.tar.gz"), new File("."));
+        // List<File> test = CompressorUtil.unCompressTarGZ(new File("G120150909.tar.gz"), new File("."));
 
         // List<File> test = CompressorUtil.unCompress(new File("000000_0(1).gz"), new File("test"));
-        log.error("{}", test);
+
+        ArrayList<File> files = new ArrayList<>();
+        files.add(new File("1.txt"));
+        files.add(new File("2.txt"));
+        files.add(new File("3.txt"));
+        files.add(new File("4.txt"));
+
+        File file = CompressorUtil.packageToTarGzFile(files, new File("test1.tar.gz"));
+        List<File> unCompressTarGZ = CompressorUtil.unCompressTarGZ(file, new File("unCompressTarGZ"));
+        log.error("{}", file);
+        log.error("{}", unCompressTarGZ);
+
     }
 
     @Test
