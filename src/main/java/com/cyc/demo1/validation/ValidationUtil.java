@@ -10,15 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.stereotype.Component;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author chenyuchuan
  */
 @Slf4j
-@Component
 public class ValidationUtil {
     private static Map<String, Pattern> regexMap = new ConcurrentHashMap<>(16);
 

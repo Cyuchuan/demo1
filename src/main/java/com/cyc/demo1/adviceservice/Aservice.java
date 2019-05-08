@@ -1,4 +1,4 @@
-package com.cyc.demo1.waittoadvice;
+package com.cyc.demo1.adviceservice;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;

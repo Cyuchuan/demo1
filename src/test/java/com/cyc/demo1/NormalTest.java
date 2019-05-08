@@ -5,6 +5,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
@@ -33,8 +34,6 @@ import com.cyc.demo1.eventservice.B;
 import com.cyc.demo1.exception.NoBatchProcessException;
 import com.cyc.demo1.listener.CustomListener1;
 import com.cyc.demo1.listener.Service;
-import com.cyc.demo1.node.Node;
-import com.cyc.demo1.node.Packet;
 import com.cyc.demo1.random.RandomUtil;
 import com.cyc.demo1.util.CompressorUtil;
 
@@ -261,44 +260,6 @@ public class NormalTest {
     }
 
     @Test
-    public void nodeTest() throws InterruptedException {
-        Node node1 = new Node("1");
-        Node node2 = new Node("2");
-        Node node3 = new Node("3");
-        Node node4 = new Node("4");
-        Node node5 = new Node("5");
-        Node node6 = new Node("6");
-        Node node7 = new Node("7");
-        Node node8 = new Node("8");
-        Node node9 = new Node("9");
-        Node node10 = new Node("10");
-
-        node1.link(node2, node3, node6);
-        node2.link(node3, node10);
-        node4.link(node6);
-        node5.link(node6);
-        node6.link(node8);
-        node7.link(node8);
-        node8.link(node9, node10);
-
-        // 设置节点7为终止结点
-        Packet packet = new Packet(3, 0, node7, node1, new ArrayList<>());
-        // 从节点1出发，尝试跳跃次数为3
-        node1.process(packet);
-
-        Packet packet1 = new Packet(3, 0, node7, node1, new ArrayList<>());
-        node1.process(packet1);
-
-        Thread.sleep(5000);
-
-        log.error("\n{}:{}\n{}:{}\n{}:{}\n{}:{}\n{}:{}\n{}:{}\n{}:{}\n{}:{}\n{}:{}\n{}:{}\n", node1.getName(),
-            node1.getMaxBlockSize(), node2.getName(), node2.getMaxBlockSize(), node3.getName(), node3.getMaxBlockSize(),
-            node4.getName(), node4.getMaxBlockSize(), node5.getName(), node5.getMaxBlockSize(), node6.getName(),
-            node6.getMaxBlockSize(), node7.getName(), node7.getMaxBlockSize(), node8.getName(), node8.getMaxBlockSize(),
-            node9.getName(), node9.getMaxBlockSize(), node10.getName(), node10.getMaxBlockSize());
-    }
-
-    @Test
     public void splitTest() {
 
         String s = "a,b,c,,";
@@ -425,12 +386,32 @@ public class NormalTest {
 
     @Test
     public void fileTest() {
-        File file = new File("123.txt");
+        File file = new File("123", "123123");
 
-        if (file.isFile()) {
-            log.error("file是文件");
-        } else {
-            log.error("file是目录");
-        }
+        file.mkdirs();
+        log.error("{}", file.getPath());
+        log.error("{}", file.getName());
+        log.error("{}", file.getAbsolutePath());
+        log.error("{}", file.getAbsoluteFile());
+
+    }
+
+    @Test
+    public void getComponentTest() {
+        List<String> list = new ArrayList<>();
+
+        list.add("小明");
+        list.add("小红");
+
+        String[] s = {"小明", "小红"};
+        List<String> strings = Arrays.asList(s);
+
+        ParameterizedType genericSuperclass = (ParameterizedType)(list.getClass().getGenericSuperclass());
+        Class<? extends List> aClass = strings.getClass();
+        Class<?> componentType = aClass.getComponentType();
+        log.error("{}", aClass);
+        log.error("{}", componentType);
+        log.error("{}", s.getClass().getComponentType());
+
     }
 }

@@ -9,12 +9,12 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+import com.cyc.demo1.adviceservice.AnnotationAdviceService;
+import com.cyc.demo1.adviceservice.Aservice;
+import com.cyc.demo1.autowirebyinterface.SignalInterfaceA;
 import com.cyc.demo1.config.MyConfig;
 import com.cyc.demo1.config.MyConfigInMyProperties;
-import com.cyc.demo1.enhance.SignalInterfaceA;
 import com.cyc.demo1.eventservice.A;
-import com.cyc.demo1.waittoadvice.AnnotationAdviceService;
-import com.cyc.demo1.waittoadvice.Aservice;
 
 import lombok.extern.slf4j.Slf4j;
 

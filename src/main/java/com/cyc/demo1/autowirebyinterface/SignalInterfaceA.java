@@ -1,9 +1,10 @@
-package com.cyc.demo1.enhance;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+package com.cyc.demo1.autowirebyinterface;
 
 import java.util.List;
+
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author chenyuchuan

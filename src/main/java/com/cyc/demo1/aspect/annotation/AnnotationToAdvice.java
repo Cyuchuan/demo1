@@ -1,4 +1,4 @@
-package com.cyc.demo1.aspect;
+package com.cyc.demo1.aspect.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

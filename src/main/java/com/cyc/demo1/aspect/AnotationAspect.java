@@ -15,12 +15,12 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class AnotationAspect {
-    @Before("@annotation(AnnotationToAdvice)&&args(s)")
+    @Before("@annotation(com.cyc.demo1.aspect.annotation.AnnotationToAdvice)&&args(s)")
     public void annotationBefore(Long s) {
         log.error("带特定注解的前置增强 {}", s);
     }
 
-    @Around(value = "@annotation(AnnotationToAdvice)&& args(s,..)")
+    @Around(value = "@annotation(com.cyc.demo1.aspect.annotation.AnnotationToAdvice)&& args(s,..)")
     public void annotationAfterError(ProceedingJoinPoint proceedingJoinPoint, String s) {
         try {
             proceedingJoinPoint.proceed();

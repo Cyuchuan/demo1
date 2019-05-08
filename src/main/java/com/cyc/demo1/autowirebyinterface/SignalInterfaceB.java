@@ -1,4 +1,4 @@
-package com.cyc.demo1.enhance;
+package com.cyc.demo1.autowirebyinterface;
 
 import org.springframework.stereotype.Component;
 

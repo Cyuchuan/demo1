@@ -1,8 +1,10 @@
-package com.cyc.demo1.waittoadvice;
+package com.cyc.demo1.adviceservice;
 
-import com.cyc.demo1.aspect.AnnotationToAdvice;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import com.cyc.demo1.aspect.annotation.AnnotationToAdvice;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author chenyuchuan
