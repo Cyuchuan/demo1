@@ -6,6 +6,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Proxy;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
@@ -32,6 +33,9 @@ import com.cyc.demo1.entity.User3;
 import com.cyc.demo1.eventservice.A;
 import com.cyc.demo1.eventservice.B;
 import com.cyc.demo1.exception.NoBatchProcessException;
+import com.cyc.demo1.jdkproxy.MathHandle;
+import com.cyc.demo1.jdkproxy.MathService;
+import com.cyc.demo1.jdkproxy.MathServiceImp;
 import com.cyc.demo1.listener.CustomListener1;
 import com.cyc.demo1.listener.Service;
 import com.cyc.demo1.random.RandomUtil;
@@ -412,6 +416,21 @@ public class NormalTest {
         log.error("{}", aClass);
         log.error("{}", componentType);
         log.error("{}", s.getClass().getComponentType());
+
+    }
+
+    @Test
+    public void jdkProxy() {
+        MathServiceImp mathServiceImp = new MathServiceImp();
+        MathHandle mathHandle = new MathHandle(mathServiceImp);
+
+        MathService mathService = (MathService)Proxy.newProxyInstance(mathHandle.getClass().getClassLoader(),
+            mathServiceImp.getClass().getInterfaces(), mathHandle);
+
+        mathService.add(1, 2);
+        mathService.subtraction(2, 1);
+        mathService.multiplication(2, 8);
+        mathService.division(10, 2);
 
     }
 }
