@@ -6,9 +6,11 @@ import java.io.RandomAccessFile;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 
 import org.junit.Test;
+
+import com.cyc.demo1.niodemo.NioClient;
+import com.cyc.demo1.niodemo.NioServer;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,5 +53,21 @@ public class NioTest {
 
         File file = new File("nio-test.txt");
 
+    }
+
+    @Test
+    public void serverTest() throws InterruptedException {
+        NioServer nioServer = new NioServer(null, 10001);
+        NioClient nioClient = new NioClient(null, 10001);
+        Thread thread = new Thread(nioServer);
+        Thread thread1 = new Thread(nioClient);
+        log.info("server:{}", nioServer);
+        log.info("client:{}", nioClient);
+
+        thread.start();
+        thread1.start();
+
+        thread.join();
+        thread1.join();
     }
 }
