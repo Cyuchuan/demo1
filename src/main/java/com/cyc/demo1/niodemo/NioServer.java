@@ -8,6 +8,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import lombok.ToString;
@@ -61,7 +62,15 @@ public class NioServer implements Runnable {
                 while (iterator.hasNext()) {
                     SelectionKey next = iterator.next();
 
-                    accept(next);
+                    if (next.isAcceptable()) {
+                        accept(next);
+
+                    }
+
+                    if (next.isReadable()) {
+                        read(next);
+
+                    }
 
                     iterator.remove();
                 }
@@ -82,7 +91,42 @@ public class NioServer implements Runnable {
         log.error("socketChannel:{} SocketAddress:{} ", socketChannel, localAddress);
 
         socketChannel.write(ByteBuffer.wrap((serverAddress + "已建立连接").getBytes()));
-        socketChannel.register(selectionKey.selector(), SelectionKey.OP_READ, ByteBuffer.allocateDirect(20));
+        socketChannel.register(selectionKey.selector(), SelectionKey.OP_READ);
+
+    }
+
+    private void read(SelectionKey selectionKey) throws IOException {
+        SocketChannel channel = (SocketChannel)selectionKey.channel();
+
+        ByteBuffer allocate = ByteBuffer.allocate(1024);
+
+        int read = channel.read(allocate);
+
+        while (read > 0) {
+            log.error("读取了：{} 个字节", read);
+            allocate.flip();
+            byte[] bytes = new byte[allocate.limit()];
+            allocate.get(bytes);
+            String s = new String(bytes, StandardCharsets.UTF_8);
+
+            log.error("读取的字符串为：{}", s);
+
+            allocate.clear();
+
+            String writeString = "HTTP/1.1 200 OK\r\n" + "Content-Length: 38\r\n" + "Content-Type: text/html\r\n"
+                + "\r\n" + "<html><body>Hello World!</body></html>";
+            // 写回channel
+            while (allocate.hasRemaining()) {
+                channel.write(ByteBuffer.wrap(writeString.getBytes(StandardCharsets.UTF_8)));
+
+            }
+
+            read = channel.read(allocate);
+        }
+
+        if (read == -1) {
+            channel.close();
+        }
 
     }
 }

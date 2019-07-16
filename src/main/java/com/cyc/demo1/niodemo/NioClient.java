@@ -2,9 +2,11 @@ package com.cyc.demo1.niodemo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import lombok.ToString;
@@ -21,6 +23,8 @@ public class NioClient implements Runnable {
 
     Selector selector;
 
+    SocketChannel socketChannel;
+
     InetSocketAddress clientAddress;
 
     InetSocketAddress serverAddress;
@@ -33,13 +37,14 @@ public class NioClient implements Runnable {
             InetSocketAddress serverAddress = new InetSocketAddress(serverPort);
             socketChannel.connect(serverAddress);
 
-            Selector selector = Selector.open();
-            this.selector = selector;
-
             this.clientAddress = (InetSocketAddress)socketChannel.getLocalAddress();
             this.serverAddress = serverAddress;
 
-            socketChannel.register(selector, SelectionKey.OP_CONNECT);
+            if (socketChannel.finishConnect()) {
+                log.info("与服务器：{} 建立连接", serverAddress);
+            }
+
+            this.socketChannel = socketChannel;
         } catch (IOException e) {
             log.error("{}", e);
         }
@@ -50,24 +55,45 @@ public class NioClient implements Runnable {
     public void run() {
         while (true) {
             try {
-                selector.select();
+                Thread.sleep(2000);
 
-                Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
+                Selector selector = Selector.open();
+                this.selector = selector;
 
-                while (iterator.hasNext()) {
-                    SelectionKey next = iterator.next();
+                socketChannel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                while (true) {
+                    selector.select();
 
-                    if (next.isConnectable()) {
-                        log.info("正在与服务器建立连接");
+                    Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
 
+                    while (iterator.hasNext()) {
+                        SelectionKey selectionKey = iterator.next();
+
+                        if (selectionKey.isReadable()) {
+                            SocketChannel socketChannel = (SocketChannel)selectionKey.channel();
+
+                            ByteBuffer buffer = ByteBuffer.allocate(1024);
+
+                            socketChannel.read(buffer);
+
+                            buffer.flip();
+
+                            byte[] bytes = new byte[buffer.limit()];
+                            buffer.get(bytes);
+                            String s = new String(bytes, StandardCharsets.UTF_8);
+                            log.error("收到服务器消息：{}", s);
+
+                            socketChannel.write(ByteBuffer.wrap("你好，我叫jane".getBytes(StandardCharsets.UTF_8)));
+                        }
+
+                        iterator.remove();
                     }
 
-                    iterator.remove();
                 }
-            } catch (IOException e) {
-                log.error("{}", e);
-            }
 
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }

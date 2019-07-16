@@ -11,10 +11,12 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.cyc.demo1.adviceservice.AnnotationAdviceService;
 import com.cyc.demo1.adviceservice.Aservice;
+import com.cyc.demo1.autoconfig.EnableContentService;
 import com.cyc.demo1.autowirebyinterface.SignalInterfaceA;
 import com.cyc.demo1.config.MyConfig;
 import com.cyc.demo1.config.MyConfigInMyProperties;
 import com.cyc.demo1.eventservice.A;
+import com.cyc.demo1.service.ContentService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @EnableAspectJAutoProxy
 @EnableAsync
 @MapperScan("com.cyc.demo1.dao")
+@EnableContentService()
 @Slf4j
 public class Demo1Application implements CommandLineRunner {
 
@@ -46,6 +49,8 @@ public class Demo1Application implements CommandLineRunner {
     public static void main(String[] args) {
         ConfigurableApplicationContext run = SpringApplication.run(Demo1Application.class, args);
 
+        ContentService bean = run.getBean(ContentService.class);
+        log.error("{}", bean.content());
     }
 
     @Override
