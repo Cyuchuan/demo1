@@ -15,15 +15,15 @@ import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorOutputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author chenyuchuan
  */
-@Slf4j
 public class CompressorUtil {
+    public static final Logger log = LoggerFactory.getLogger(CompressorUtil.class);
 
     private static final int IO_BUFFER = 1024 * 8;
 
@@ -35,9 +35,20 @@ public class CompressorUtil {
 
     }
 
+    public static File packageToFile(Collection<File> filesToArchive, File dir, String targetFileName) {
+        mkdir(dir);
+
+        return packageToFile(filesToArchive, new File(dir, targetFileName));
+    }
+
+    public static File packageToFile(Collection<File> filesToArchive, String targetFileName) {
+
+        return packageToFile(filesToArchive, new File(targetFileName));
+    }
+
     /**
      * 打包文件,如zip，tar等
-     * 
+     *
      * @param filesToArchive
      *            需要打包的文件
      * @param targetFile
@@ -69,7 +80,7 @@ public class CompressorUtil {
 
     /**
      * 打包成tar.gz
-     * 
+     *
      * @param filesToArchive
      *            源文件
      * @param targetFile
@@ -103,28 +114,20 @@ public class CompressorUtil {
         }
     }
 
-    private static void filesToArchive(Collection<File> filesToArchive, ArchiveOutputStream archiveOutputStream)
-        throws IOException {
-        for (File file : filesToArchive) {
-            ArchiveEntry entry = archiveOutputStream.createArchiveEntry(file, file.getName());
+    public static File packageToTarGzFile(Collection<File> filesToArchive, String targetFileName) {
 
-            archiveOutputStream.putArchiveEntry(entry);
+        return packageToTarGzFile(filesToArchive, new File(targetFileName));
+    }
 
-            if (file.isFile()) {
-                try (InputStream inputStream = Files.newInputStream(file.toPath())) {
-                    IOUtils.copy(inputStream, archiveOutputStream, IO_BUFFER);
-                }
-            }
+    public static File packageToTarGzFile(Collection<File> filesToArchive, File dir, String targetFileName) {
+        mkdir(dir);
 
-            archiveOutputStream.closeArchiveEntry();
-        }
-
-        archiveOutputStream.finish();
+        return packageToTarGzFile(filesToArchive, new File(dir, targetFileName));
     }
 
     /**
      * 解包已经打包的文件，如zip，tar等
-     * 
+     *
      * @param packagedFile
      *            打包的文件
      * @param dir
@@ -141,7 +144,7 @@ public class CompressorUtil {
             ArchiveInputStream archiveInputStream =
                 ARCHIVE_FACTORY.createArchiveInputStream(packageType, inputStream)) {
 
-            return resolveArchive(packagedFile, archiveInputStream, dir);
+            return resolveArchive(archiveInputStream, dir);
         } catch (ArchiveException e) {
             log.error("{}", e);
             throw new RuntimeException("归档文件异常 " + e.getMessage());
@@ -153,7 +156,7 @@ public class CompressorUtil {
 
     /**
      * 解压缩压缩后的文件，如gz等
-     * 
+     *
      * @param compressFile
      *            压缩文件
      * @param dir
@@ -163,7 +166,7 @@ public class CompressorUtil {
     public static List<File> unCompress(File compressFile, File dir) {
         checkArgsAndMkDir(compressFile, dir);
 
-        String simpleName = getSrcFileSimpleName(compressFile);
+        String simpleName = getFileSimpleName(compressFile);
         String compressType = getFileType(compressFile);
 
         List<File> unPackageFiles = new ArrayList<>(10);
@@ -191,7 +194,7 @@ public class CompressorUtil {
 
     /**
      * 解压tar.gz文件
-     * 
+     *
      * @param gzFile
      *            tar.gz 文件
      * @param dir
@@ -201,15 +204,26 @@ public class CompressorUtil {
     public static List<File> unCompressTarGZ(File gzFile, File dir) {
         checkArgsAndMkDir(gzFile, dir);
 
-        try (InputStream inputStream = Files.newInputStream(gzFile.toPath());
+        try (InputStream inputStream = Files.newInputStream(gzFile.toPath())) {
 
+            return unCompressTarGZ(inputStream, dir);
+        } catch (IOException e) {
+            log.error("{}", e);
+            throw new RuntimeException("io操作异常 " + e.getMessage());
+        }
+    }
+
+    public static List<File> unCompressTarGZ(InputStream inputStream, File dir) {
+        mkdir(dir);
+
+        try (
             CompressorInputStream compressorInputStream =
                 COMPRESSOR_FACTORY.createCompressorInputStream(CompressorStreamFactory.GZIP, inputStream);
 
             ArchiveInputStream archiveInputStream =
                 ARCHIVE_FACTORY.createArchiveInputStream(ArchiveStreamFactory.TAR, compressorInputStream)) {
 
-            return resolveArchive(gzFile, archiveInputStream, dir);
+            return resolveArchive(archiveInputStream, dir);
         } catch (ArchiveException e) {
             log.error("{}", e);
             throw new RuntimeException("归档文件异常 " + e.getMessage());
@@ -222,14 +236,32 @@ public class CompressorUtil {
         }
     }
 
-    private static List<File> resolveArchive(File srcFile, ArchiveInputStream archiveInputStream, File dir)
+    private static void filesToArchive(Collection<File> filesToArchive, ArchiveOutputStream archiveOutputStream)
         throws IOException {
+        for (File file : filesToArchive) {
+            ArchiveEntry entry = archiveOutputStream.createArchiveEntry(file, file.getName());
+
+            archiveOutputStream.putArchiveEntry(entry);
+
+            if (file.isFile()) {
+                try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+                    IOUtils.copy(inputStream, archiveOutputStream, IO_BUFFER);
+                }
+            }
+
+            archiveOutputStream.closeArchiveEntry();
+        }
+
+        archiveOutputStream.finish();
+    }
+
+    private static List<File> resolveArchive(ArchiveInputStream archiveInputStream, File dir) throws IOException {
         List<File> resolveFiles = new ArrayList<>(10);
 
         ArchiveEntry entry;
         while ((entry = archiveInputStream.getNextEntry()) != null) {
             if (!archiveInputStream.canReadEntryData(entry)) {
-                throw new RuntimeException("归档文件：" + srcFile.getAbsolutePath() + " 不可读");
+                throw new RuntimeException("归档文件不可读");
             }
 
             // 将写入的文件
@@ -264,14 +296,14 @@ public class CompressorUtil {
         }
     }
 
-    private static String getSrcFileSimpleName(File srcFile) {
-        String name = srcFile.getName();
+    private static String getFileSimpleName(File file) {
+        String name = file.getName();
         int lastPoint = name.lastIndexOf('.');
 
         try {
             return name.substring(0, lastPoint);
         } catch (Exception e) {
-            throw new RuntimeException("文件后缀不正确：" + srcFile.getName() + " 无法确定是什么文件类型");
+            throw new RuntimeException("文件后缀不正确：" + file.getName() + " 无法确定是什么文件类型");
         }
     }
 
@@ -289,16 +321,18 @@ public class CompressorUtil {
 
         }
 
+        mkdir(dir);
+    }
+
+    private static void mkdir(File dir) {
         if (dir.isFile()) {
             throw new IllegalArgumentException("dir不能是文件");
 
         }
 
         // 通过了以上检查说明参数正确
-        if (!dir.exists()) {
-            if (!dir.mkdirs()) {
-                throw new RuntimeException("目录dir：" + dir.getAbsolutePath() + " 无法创建");
-            }
+        if (!dir.exists() && !dir.mkdirs()) {
+            throw new RuntimeException("目录dir：" + dir.getAbsolutePath() + " 无法创建");
         }
     }
 

@@ -21,6 +21,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
+import com.cyc.demo1.util.CompressorUtil;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -39,7 +40,6 @@ import com.cyc.demo1.jdkproxy.MathServiceImp;
 import com.cyc.demo1.listener.CustomListener1;
 import com.cyc.demo1.listener.Service;
 import com.cyc.demo1.random.RandomUtil;
-import com.cyc.demo1.util.CompressorUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
