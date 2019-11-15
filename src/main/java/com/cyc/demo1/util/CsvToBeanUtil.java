@@ -12,7 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
+import com.opencsv.ICSVWriter;
 import com.opencsv.bean.CsvToBeanBuilder;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
 
 /**
  * 配合@CsvBindByName、@CsvBindByPosition等注解使用
@@ -26,6 +28,35 @@ public class CsvToBeanUtil {
 
     private CsvToBeanUtil() {
 
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> void writeBeansToFile(List<T> bean, File destFile, Charset encode, String separator) {
+        File tempFile = getTempFile();
+
+        File correctFile = null;
+        try (FileOutputStream tempFileOutputStream = FileUtils.openOutputStream(tempFile);
+            BufferedWriter tempWriter = new BufferedWriter(new OutputStreamWriter(tempFileOutputStream, encode));
+            FileInputStream tempFileInputStream = FileUtils.openInputStream(tempFile)) {
+
+            new StatefulBeanToCsvBuilder(tempWriter).withLineEnd(System.lineSeparator())
+                .withQuotechar(ICSVWriter.NO_QUOTE_CHARACTER).withOrderedResults(false)
+                .withSeparator(DEFAULT_SEPARATOR_CHAR).build().write(bean);
+            tempWriter.flush();
+
+            correctFile = toCanProcessFile(tempFileInputStream, encode, DEFAULT_SEPARATOR_STR, separator);
+            if (correctFile != null) {
+                FileUtils.copyFile(correctFile, destFile);
+
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            FileUtils.deleteQuietly(tempFile);
+            FileUtils.deleteQuietly(correctFile);
+
+        }
     }
 
     /**

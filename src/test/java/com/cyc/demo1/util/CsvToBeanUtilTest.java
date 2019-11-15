@@ -5,8 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
@@ -28,13 +28,11 @@ public class CsvToBeanUtilTest {
 
         log.error("大小：{}  值：{}", personList.size(), personList.get(0));
 
-
         String fileString = this.getClass().getClassLoader().getResource("person.csv").getFile();
         File file = FileUtils.getFile(fileString);
 
         // 直接获取整个文件内容，转化为对象
-        List<Person> personList1 =
-                CsvToBeanUtil.toBeanList(file, StandardCharsets.UTF_8, "@!@", Person.class);
+        List<Person> personList1 = CsvToBeanUtil.toBeanList(file, StandardCharsets.UTF_8, "@!@", Person.class);
         log.error("大小：{}  值：{}", personList.size(), personList.get(0));
 
     }
@@ -78,4 +76,20 @@ public class CsvToBeanUtilTest {
         }
 
     }
+
+    @Test
+    public void writeBeansToFile() {
+        List<Person> personList = new ArrayList<>();
+        for (int i = 0; i < 10000; i++) {
+            Person person = new Person();
+            person.setAge(ThreadLocalRandom.current().nextInt(100));
+            person.setName(UUID.randomUUID().toString());
+            person.setBrithday(new Date());
+
+            personList.add(person);
+        }
+
+        CsvToBeanUtil.writeBeansToFile(personList, new File("ceshi"), StandardCharsets.UTF_8, "@!@");
+    }
+
 }
