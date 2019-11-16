@@ -5,12 +5,18 @@ import java.util.Date;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvDate;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author chenyuchuan
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Person {
 
     @CsvDate("yyyyMMdd")

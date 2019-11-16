@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.io.FileUtils;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.cyc.demo1.pojo.Person;
@@ -26,15 +28,17 @@ public class CsvToBeanUtilTest {
         List<Person> personList =
             CsvToBeanUtil.toBeanList(resourceAsStream, StandardCharsets.UTF_8, "@!@", Person.class);
 
-        log.error("大小：{}  值：{}", personList.size(), personList.get(0));
+        Assert.assertThat(personList.size(), CoreMatchers.equalTo(30750));
+        Person person = Person.builder().name("小明").age(18).build();
+        Assert.assertThat(personList.get(0), CoreMatchers.equalTo(person));
 
         String fileString = this.getClass().getClassLoader().getResource("person.csv").getFile();
         File file = FileUtils.getFile(fileString);
 
         // 直接获取整个文件内容，转化为对象
         List<Person> personList1 = CsvToBeanUtil.toBeanList(file, StandardCharsets.UTF_8, "@!@", Person.class);
-        log.error("大小：{}  值：{}", personList.size(), personList.get(0));
-
+        Assert.assertThat(personList1.size(), CoreMatchers.equalTo(30750));
+        Assert.assertThat(personList1.get(0), CoreMatchers.equalTo(person));
     }
 
     @Test
@@ -63,10 +67,13 @@ public class CsvToBeanUtilTest {
             int sum = 0;
             Person next = null;
             while (personIterator.hasNext()) {
-                next = personIterator.next();
                 sum++;
+                next = personIterator.next();
             }
-            log.error("大小：{}  值：{}", sum, next);
+
+            Assert.assertThat(sum, CoreMatchers.equalTo(30750));
+            Person person = Person.builder().name("小明").age(18).build();
+            Assert.assertThat(next, CoreMatchers.equalTo(person));
         } catch (IOException e) {
 
         } finally {
@@ -80,7 +87,7 @@ public class CsvToBeanUtilTest {
     @Test
     public void writeBeansToFile() {
         List<Person> personList = new ArrayList<>();
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 1000; i++) {
             Person person = new Person();
             person.setAge(ThreadLocalRandom.current().nextInt(100));
             person.setName(UUID.randomUUID().toString());

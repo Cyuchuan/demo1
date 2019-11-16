@@ -30,26 +30,52 @@ public class CsvToBeanUtil {
 
     }
 
+    /**
+     * 根据传入的List定义的csv对象（csv的相关注解），输出对象的内容到指定的destFile文件中。 使用该api进行对象到csv文件的输出时，尽量是用@CsvBindByPosition根据位置进行输出。
+     * 因为使用@CsvBindByName，当没有一个对象的时候（即空文件）无法获得对象的字段信息绑定，因此空文件是不带header的（即字段的注解），可能与预期不符。
+     * 
+     * @param beans
+     *            需要输出的csv对象的List
+     * @param destFile
+     *            输出到的目标文件
+     * @param encode
+     *            文件的编码格式
+     * @param separator
+     *            csv中的分隔符，可以是任意string
+     */
     @SuppressWarnings("unchecked")
-    public static <T> void writeBeansToFile(List<T> bean, File destFile, Charset encode, String separator) {
+    public static <T> void writeBeansToFile(List<T> beans, File destFile, Charset encode, String separator) {
+        Assert.notNull(beans, "beans不能为空");
+        Assert.notNull(destFile, "destFile不能为空");
+        Assert.notNull(encode, "encode不能为空");
+
+        if (StringUtils.isEmpty(separator)) {
+            throw new IllegalArgumentException("separator不能为空");
+        }
+
         File tempFile = getTempFile();
 
         File correctFile = null;
         try (FileOutputStream tempFileOutputStream = FileUtils.openOutputStream(tempFile);
-            BufferedWriter tempWriter = new BufferedWriter(new OutputStreamWriter(tempFileOutputStream, encode));
-            FileInputStream tempFileInputStream = FileUtils.openInputStream(tempFile)) {
+            BufferedWriter tempWriter = new BufferedWriter(new OutputStreamWriter(tempFileOutputStream, encode))) {
 
             new StatefulBeanToCsvBuilder(tempWriter).withLineEnd(System.lineSeparator())
                 .withQuotechar(ICSVWriter.NO_QUOTE_CHARACTER).withOrderedResults(false)
-                .withSeparator(DEFAULT_SEPARATOR_CHAR).build().write(bean);
+                .withSeparator(DEFAULT_SEPARATOR_CHAR).build().write(beans);
             tempWriter.flush();
 
-            correctFile = toCanProcessFile(tempFileInputStream, encode, DEFAULT_SEPARATOR_STR, separator);
-            if (correctFile != null) {
+            correctFile = toCanProcessFile(tempFile, encode, DEFAULT_SEPARATOR_STR, separator);
+            if (correctFile == null) {
+                if (!destFile.exists()) {
+                    destFile.createNewFile();
+                } else {
+                    destFile.delete();
+                    destFile.createNewFile();
+                }
+            } else {
                 FileUtils.copyFile(correctFile, destFile);
 
             }
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -74,6 +100,8 @@ public class CsvToBeanUtil {
      * @return 对应文件的list列表
      */
     public static <T> List<T> toBeanList(File srcFile, Charset encode, String separator, Class<T> type) {
+        Assert.notNull(srcFile, "srcFile不能为null");
+
         try (FileInputStream fileInputStream = FileUtils.openInputStream(srcFile)) {
             return toBeanList(fileInputStream, encode, separator, type);
 
@@ -98,10 +126,14 @@ public class CsvToBeanUtil {
     public static <T> List<T> toBeanList(InputStream inputStream, Charset encode, String separator, Class<T> type) {
         Assert.notNull(inputStream, "inputStream不能为空");
         Assert.notNull(type, "type不能为空");
-        Assert.notNull(separator, "separator不能为空");
         Assert.notNull(encode, "encode不能为空");
 
+        if (StringUtils.isEmpty(separator)) {
+            throw new IllegalArgumentException("separator不能为空串");
+        }
+
         char[] chars = separator.toCharArray();
+
         // 如果是单字符，则直接用单字符进行转换
         if (chars.length == 1) {
             return singleSeparatorToBeanList(inputStream, encode, chars[0], type);
@@ -142,9 +174,6 @@ public class CsvToBeanUtil {
      */
     public static File toCanProcessFile(File file, Charset encode, String srcString, String targetString) {
         Assert.notNull(file, "file不能为null");
-        Assert.notNull(encode, "encode不能为null");
-        Assert.notNull(srcString, "srcString不能为null");
-        Assert.notNull(targetString, "targetString不能为null");
 
         try (InputStream inputStream = FileUtils.openInputStream(file)) {
             return toCanProcessFile(inputStream, encode, srcString, targetString);
@@ -172,8 +201,9 @@ public class CsvToBeanUtil {
         String targetString) {
         Assert.notNull(inputStream, "inputStream不能为null");
         Assert.notNull(encode, "encode不能为null");
-        Assert.notNull(srcString, "srcString不能为null");
-        Assert.notNull(targetString, "targetString不能为null");
+        if (StringUtils.isEmpty(srcString) || StringUtils.isEmpty(targetString)) {
+            throw new IllegalArgumentException("srcString且targetString不能为空");
+        }
 
         File tempFile = getTempFile();
 
