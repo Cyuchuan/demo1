@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
-import com.opencsv.ICSVWriter;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 
@@ -25,9 +24,27 @@ public class CsvToBeanUtil {
     public static final String DEFAULT_SEPARATOR_STR = "\u0001";
     private static final Logger log = LoggerFactory.getLogger(CsvToBeanUtil.class);
     private static final char DEFAULT_SEPARATOR_CHAR = '\u0001';
+    private static final char DEFAULT_ESCAPE_CHAR = '\u0000';
+    private static final char DEFAULT_NO_QUOTE_CHAR = '\u0000';
+    private static final char DEFAULT_QUOTE_CHAR = '"';
+
+    private static final String TEMP_DIR;
 
     private CsvToBeanUtil() {
 
+    }
+
+    // 开始对临时文件夹的地址的设置，可以在配置文件中进行设置，也可以使用默认
+    static {
+        TEMP_DIR = System.getProperty("csvToBeanUtil.tempDir", "tempCsvBeanUtilTarget");
+    }
+
+    /**
+     * @see CsvToBeanUtil#writeBeansToFile(List, File, Charset, String, boolean)
+     *
+     */
+    public static <T> void writeBeansToFile(List<T> beans, File destFile, Charset encode, String separator) {
+        writeBeansToFile(beans, destFile, encode, separator, false);
     }
 
     /**
@@ -42,9 +59,12 @@ public class CsvToBeanUtil {
      *            文件的编码格式
      * @param separator
      *            csv中的分隔符，可以是任意string
+     * @param needQuote
+     *            输出的字段是否需要双引号括住
      */
     @SuppressWarnings("unchecked")
-    public static <T> void writeBeansToFile(List<T> beans, File destFile, Charset encode, String separator) {
+    public static <T> void writeBeansToFile(List<T> beans, File destFile, Charset encode, String separator,
+        boolean needQuote) {
         Assert.notNull(beans, "beans不能为空");
         Assert.notNull(destFile, "destFile不能为空");
         Assert.notNull(encode, "encode不能为空");
@@ -59,9 +79,11 @@ public class CsvToBeanUtil {
         try (FileOutputStream tempFileOutputStream = FileUtils.openOutputStream(tempFile);
             BufferedWriter tempWriter = new BufferedWriter(new OutputStreamWriter(tempFileOutputStream, encode))) {
 
-            new StatefulBeanToCsvBuilder(tempWriter).withLineEnd(System.lineSeparator())
-                .withQuotechar(ICSVWriter.NO_QUOTE_CHARACTER).withOrderedResults(false)
-                .withSeparator(DEFAULT_SEPARATOR_CHAR).build().write(beans);
+            char quoteChar = getQuoteChar(needQuote);
+
+            new StatefulBeanToCsvBuilder(tempWriter).withLineEnd(System.lineSeparator()).withQuotechar(quoteChar)
+                .withOrderedResults(true).withEscapechar(DEFAULT_ESCAPE_CHAR).withSeparator(DEFAULT_SEPARATOR_CHAR)
+                .build().write(beans);
             tempWriter.flush();
 
             correctFile = toCanProcessFile(tempFile, encode, DEFAULT_SEPARATOR_STR, separator);
@@ -85,6 +107,22 @@ public class CsvToBeanUtil {
         }
     }
 
+    private static char getQuoteChar(boolean needQuote) {
+        char quoteChar;
+        if (needQuote) {
+            quoteChar = DEFAULT_QUOTE_CHAR;
+
+        } else {
+            quoteChar = DEFAULT_NO_QUOTE_CHAR;
+
+        }
+        return quoteChar;
+    }
+
+    public static <T> List<T> toBeanList(File srcFile, Charset encode, String separator, Class<T> type) {
+        return toBeanList(srcFile, encode, separator, type, false);
+    }
+
     /**
      * 一次性读出文件 使用注解@CsvBindByName（根据第一行的行头名称进行映射）或者@CsvBindByPosition（根据字段的位置进行映射，从0开始）标识class的字段
      *
@@ -99,11 +137,12 @@ public class CsvToBeanUtil {
      * 
      * @return 对应文件的list列表
      */
-    public static <T> List<T> toBeanList(File srcFile, Charset encode, String separator, Class<T> type) {
+    public static <T> List<T> toBeanList(File srcFile, Charset encode, String separator, Class<T> type,
+        boolean needQuote) {
         Assert.notNull(srcFile, "srcFile不能为null");
 
         try (FileInputStream fileInputStream = FileUtils.openInputStream(srcFile)) {
-            return toBeanList(fileInputStream, encode, separator, type);
+            return toBeanList(fileInputStream, encode, separator, type, needQuote);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -111,7 +150,15 @@ public class CsvToBeanUtil {
     }
 
     /**
+     * @see CsvToBeanUtil#toBeanList(InputStream, Charset, String, Class, boolean)
+     */
+    public static <T> List<T> toBeanList(InputStream inputStream, Charset encode, String separator, Class<T> type) {
+        return toBeanList(inputStream, encode, separator, type, false);
+    }
+
+    /**
      * 一次性读出文件 使用注解@CsvBindByName（根据第一行的行头名称进行映射）或者@CsvBindByPosition（根据字段的位置进行映射，从0开始）标识class的字段
+     * 因为内部会一次性读出流，所以内部也会进行流的关闭，调用方不进行关闭也不会有问题。要和{@link CsvToBeanUtil#toBeanIterator(InputStream, Charset, Class)}区分，这个需要自己用完后关闭流
      * 
      * @param inputStream
      *            csv文件流，或者网络文件流
@@ -121,9 +168,12 @@ public class CsvToBeanUtil {
      *            分隔符
      * @param type
      *            要转换的class
+     * @param needQuote
+     *            原csv是否有双引号括住字段
      * @return 对应文件的list列表
      */
-    public static <T> List<T> toBeanList(InputStream inputStream, Charset encode, String separator, Class<T> type) {
+    public static <T> List<T> toBeanList(InputStream inputStream, Charset encode, String separator, Class<T> type,
+        boolean needQuote) {
         Assert.notNull(inputStream, "inputStream不能为空");
         Assert.notNull(type, "type不能为空");
         Assert.notNull(encode, "encode不能为空");
@@ -136,10 +186,10 @@ public class CsvToBeanUtil {
 
         // 如果是单字符，则直接用单字符进行转换
         if (chars.length == 1) {
-            return singleSeparatorToBeanList(inputStream, encode, chars[0], type);
+            return singleSeparatorToBeanList(inputStream, encode, chars[0], type, needQuote);
 
         } else {
-            return customSeparatorToBeanList(inputStream, encode, separator, type);
+            return customSeparatorToBeanList(inputStream, encode, separator, type, needQuote);
 
         }
     }
@@ -268,6 +318,13 @@ public class CsvToBeanUtil {
     }
 
     /**
+     * @see CsvToBeanUtil#toBeanIterator(InputStream, Charset, Class, boolean)
+     */
+    public static <T> Iterator<T> toBeanIterator(InputStream inputStream, Charset encode, Class<T> beanType) {
+        return toBeanIterator(inputStream, encode, beanType, false);
+    }
+
+    /**
      * 使用迭代的方式必须关注流，需要自己记得去关闭，api内部不能关闭，因为关闭后，迭代时会出现IOException: Stream Closed;
      * 使用该api时，需要先用toCanProcessCsvFile()对原文件进行处理，在将生成的临时文件流放入，迭代完成后，记得关闭临时文件流，并删除临时文件
      * 
@@ -277,29 +334,41 @@ public class CsvToBeanUtil {
      *            原文件编码格式
      * @param beanType
      *            转换的class
+     * @param needQuote
+     *            输入的csv文件中，字段是否有双引号括住
      * @return 该class的迭代器
      */
-    public static <T> Iterator<T> toBeanIterator(InputStream inputStream, Charset encode, Class<T> beanType) {
+    public static <T> Iterator<T> toBeanIterator(InputStream inputStream, Charset encode, Class<T> beanType,
+        boolean needQuote) {
+        Assert.notNull(inputStream, "inputStream不能为null");
+        Assert.notNull(encode, "encode不能为null");
+        Assert.notNull(beanType, "beanType不能为null");
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, encode));
 
-        return new CsvToBeanBuilder<T>(bufferedReader).withSeparator(DEFAULT_SEPARATOR_CHAR).withOrderedResults(false)
-            .withType(beanType).build().iterator();
+        char quoteChar = getQuoteChar(needQuote);
+
+        return new CsvToBeanBuilder<T>(bufferedReader).withSeparator(DEFAULT_SEPARATOR_CHAR)
+            .withEscapeChar(DEFAULT_ESCAPE_CHAR).withQuoteChar(quoteChar).withOrderedResults(true).withType(beanType)
+            .build().iterator();
 
     }
 
-    private static <T> List<T> toBeanList(InputStream inputStream, Charset encode, char separator, Class<T> beanType) {
+    private static <T> List<T> toBeanList(InputStream inputStream, Charset encode, char separator, Class<T> beanType,
+        boolean needQuote) {
+        char quoteChar = getQuoteChar(needQuote);
+
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, encode))) {
 
-            return new CsvToBeanBuilder<T>(bufferedReader).withSeparator(separator).withOrderedResults(false)
-                .withType(beanType).build().parse();
+            return new CsvToBeanBuilder<T>(bufferedReader).withSeparator(separator).withEscapeChar(DEFAULT_ESCAPE_CHAR)
+                .withQuoteChar(quoteChar).withOrderedResults(true).withType(beanType).build().parse();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     private static <T> List<T> customSeparatorToBeanList(InputStream inputStream, Charset encode, String separator,
-        Class<T> type) {
+        Class<T> type, boolean needQuote) {
         // 在项目目录下创建tempTarget文件夹
         File tempFile = getTempFile();
 
@@ -339,7 +408,7 @@ public class CsvToBeanUtil {
             if (isNullFile) {
                 return new ArrayList<>(0);
             } else {
-                return toBeanList(tempInputStream, encode, DEFAULT_SEPARATOR_CHAR, type);
+                return toBeanList(tempInputStream, encode, DEFAULT_SEPARATOR_CHAR, type, needQuote);
 
             }
         } catch (IOException e) {
@@ -355,7 +424,7 @@ public class CsvToBeanUtil {
     }
 
     private static <T> List<T> singleSeparatorToBeanList(InputStream inputStream, Charset encode, char separator,
-        Class<T> type) {
+        Class<T> type, boolean needQuote) {
         // 在项目目录下创建tempTarget文件夹
         // 去除多余行
         File tempFile = getTempFile();
@@ -391,7 +460,7 @@ public class CsvToBeanUtil {
             if (isNullFile) {
                 return Collections.emptyList();
             } else {
-                return toBeanList(tempInputStream, encode, separator, type);
+                return toBeanList(tempInputStream, encode, separator, type, needQuote);
 
             }
         } catch (IOException e) {
@@ -406,7 +475,7 @@ public class CsvToBeanUtil {
     }
 
     private static File getTempFile() {
-        return FileUtils.getFile(new File("tempCsvBeanUtilTarget"), UUID.randomUUID().toString());
+        return FileUtils.getFile(new File(TEMP_DIR), UUID.randomUUID().toString());
     }
 
 }
