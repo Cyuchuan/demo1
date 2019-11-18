@@ -18,7 +18,7 @@ public class CompressorUtilTest {
         File[] files = file.listFiles();
         List<File> fileList = Arrays.asList(files);
 
-        File zip = CompressorUtil.packageToFile(fileList, "packageToFile.zip", ArchiveType.zip);
+        File zip = CompressorUtil.packageToFile(fileList, "packageToFile.zip", ArchiveType.ZIP);
         assertThat(zip.getName(), CoreMatchers.equalTo("packageToFile.zip"));
     }
 
@@ -35,7 +35,7 @@ public class CompressorUtilTest {
 
     @Test
     public void unPackage() {
-        List<File> files = CompressorUtil.unPackage("packageToFile.zip", ArchiveType.zip, "unzip");
+        List<File> files = CompressorUtil.unPackage("packageToFile.zip", ArchiveType.ZIP, "unzip");
         assertThat(files.get(0).getParentFile().getName(), CoreMatchers.equalTo("unzip"));
 
     }
