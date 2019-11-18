@@ -6,7 +6,7 @@ package com.cyc.demo1.util;
  * @author chenyuchuan
  */
 public enum ArchiveType {
-    TAR("tar"), zip("zip"), TO7Z("7z"), JAR("jar");
+    TAR("tar"), ZIP("zip"), JAR("jar");
 
     private String archiveType;
 

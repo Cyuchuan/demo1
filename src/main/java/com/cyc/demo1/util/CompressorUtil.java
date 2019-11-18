@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -330,6 +331,32 @@ public class CompressorUtil {
         }
     }
 
+    private static void filesToChildArchive(Collection<File> filesToArchive, String dirName,
+        ArchiveOutputStream archiveOutputStream) throws IOException {
+        for (File file : filesToArchive) {
+            ArchiveEntry entry = archiveOutputStream.createArchiveEntry(file, dirName + file.getName());
+
+            archiveOutputStream.putArchiveEntry(entry);
+
+            if (file.isFile()) {
+                try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+                    IOUtils.copy(inputStream, archiveOutputStream, IO_BUFFER);
+                }
+                archiveOutputStream.closeArchiveEntry();
+
+            } else {
+                File[] childFiles = file.listFiles();
+                if (childFiles != null) {
+                    filesToChildArchive(Arrays.asList(childFiles), entry.getName(), archiveOutputStream);
+
+                }
+
+            }
+
+        }
+
+    }
+
     private static void filesToArchive(Collection<File> filesToArchive, ArchiveOutputStream archiveOutputStream)
         throws IOException {
         for (File file : filesToArchive) {
@@ -341,9 +368,16 @@ public class CompressorUtil {
                 try (InputStream inputStream = Files.newInputStream(file.toPath())) {
                     IOUtils.copy(inputStream, archiveOutputStream, IO_BUFFER);
                 }
+                archiveOutputStream.closeArchiveEntry();
+            } else {
+                File[] childFiles = file.listFiles();
+                if (childFiles != null) {
+                    filesToChildArchive(Arrays.asList(childFiles), entry.getName(), archiveOutputStream);
+
+                }
+
             }
 
-            archiveOutputStream.closeArchiveEntry();
         }
 
         archiveOutputStream.finish();

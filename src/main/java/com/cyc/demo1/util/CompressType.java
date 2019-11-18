@@ -6,8 +6,7 @@ package com.cyc.demo1.util;
  * @author chenyuchuan
  */
 public enum CompressType {
-    GZ("gz"), BZIP2("bzip2"), PACK200("pack200"), DEFLATE("deflate"), LZ4_BLOCK("lz4-block"), LZ4_FRAMED("lz4-framed"),
-    SNAPPY_FRAMED("snappy-framed"),;
+    GZ("gz"), BZIP2("bzip2"),;
 
     private String compressType;
 
