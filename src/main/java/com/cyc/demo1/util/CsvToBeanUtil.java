@@ -30,13 +30,13 @@ public class CsvToBeanUtil {
 
     private static final String TEMP_DIR;
 
-    private CsvToBeanUtil() {
-
-    }
-
     // 开始对临时文件夹的地址的设置，可以在配置文件中进行设置，也可以使用默认
     static {
         TEMP_DIR = System.getProperty("csvToBeanUtil.tempDir", "tempCsvBeanUtilTarget");
+    }
+
+    private CsvToBeanUtil() {
+
     }
 
     /**
@@ -413,9 +413,6 @@ public class CsvToBeanUtil {
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-
         } finally {
             // 删除临时文件
             FileUtils.deleteQuietly(tempFile);
@@ -465,9 +462,6 @@ public class CsvToBeanUtil {
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-
         } finally {
             // 删除临时文件
             FileUtils.deleteQuietly(tempFile);
