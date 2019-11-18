@@ -15,16 +15,11 @@ import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorOutputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 
 /**
  * @author chenyuchuan
  */
 public class CompressorUtil {
-    public static final Logger log = LoggerFactory.getLogger(CompressorUtil.class);
-
     private static final int IO_BUFFER = 1024 * 8;
 
     private static final CompressorStreamFactory COMPRESSOR_FACTORY = CompressorStreamFactory.getSingleton();
@@ -35,15 +30,16 @@ public class CompressorUtil {
 
     }
 
-    public static File packageToFile(Collection<File> filesToArchive, File dir, String targetFileName) {
+    public static File packageToFile(Collection<File> filesToArchive, File dir, String targetFileName,
+        ArchiveType archiveType) {
         mkdir(dir);
 
-        return packageToFile(filesToArchive, new File(dir, targetFileName));
+        return packageToFile(filesToArchive, new File(dir, targetFileName), archiveType);
     }
 
-    public static File packageToFile(Collection<File> filesToArchive, String targetFileName) {
+    public static File packageToFile(Collection<File> filesToArchive, String targetFile, ArchiveType archiveType) {
 
-        return packageToFile(filesToArchive, new File(targetFileName));
+        return packageToFile(filesToArchive, new File(targetFile), archiveType);
     }
 
     /**
@@ -53,43 +49,47 @@ public class CompressorUtil {
      *            需要打包的文件
      * @param targetFile
      *            生成的打包后的文件
+     * @param archiveType
+     *            打包的类型
      * @return 返回打包后的文件
      */
-    public static File packageToFile(Collection<File> filesToArchive, File targetFile) {
-        Assert.notNull(filesToArchive, "需要打包的文件不能为null");
-        Assert.notNull(targetFile, "打包后的目标文件不能为null");
-
-        String fileType = getFileType(targetFile);
+    public static File packageToFile(Collection<File> filesToArchive, File targetFile, ArchiveType archiveType) {
+        if (filesToArchive == null || archiveType == null || targetFile == null) {
+            throw new IllegalArgumentException("需要打包的文件不能为null");
+        }
 
         try (OutputStream outputStream = Files.newOutputStream(targetFile.toPath());
 
             ArchiveOutputStream archiveOutputStream =
-                ARCHIVE_FACTORY.createArchiveOutputStream(fileType, outputStream)) {
+                ARCHIVE_FACTORY.createArchiveOutputStream(archiveType.getArchiveType(), outputStream)) {
 
             filesToArchive(filesToArchive, archiveOutputStream);
 
             return targetFile;
         } catch (ArchiveException e) {
-            log.error("{}", e);
-            throw new RuntimeException("归档文件异常 " + e.getMessage());
+            throw new RuntimeException("归档文件异常:" + e.getMessage(), e);
         } catch (IOException e) {
-            log.error("{}", e);
-            throw new RuntimeException("io操作异常 " + e.getMessage());
+            throw new RuntimeException("io操作异常:" + e.getMessage(), e);
         }
     }
 
     /**
-     * 打包成tar.gz
+     * 将集合中的所有文件，打包成一个tar.gz
      *
      * @param filesToArchive
-     *            源文件
+     *            源文件集合
      * @param targetFile
-     *            目标文件
+     *            打包后的tar.gz文件
      * @return 目标文件
      */
     public static File packageToTarGzFile(Collection<File> filesToArchive, File targetFile) {
-        Assert.notNull(filesToArchive, "需要打包的文件不能为null");
-        Assert.notNull(targetFile, "打包后的目标文件不能为null");
+        if (filesToArchive == null) {
+            throw new IllegalArgumentException("需要打包的文件不能为null");
+        }
+
+        if (targetFile == null) {
+            throw new IllegalArgumentException("打包后的目标文件不能为null");
+        }
 
         try (OutputStream outputStream = Files.newOutputStream(targetFile.toPath());
 
@@ -103,20 +103,17 @@ public class CompressorUtil {
 
             return targetFile;
         } catch (ArchiveException e) {
-            log.error("{}", e);
-            throw new RuntimeException("归档文件异常 " + e.getMessage());
+            throw new RuntimeException("归档文件异常 " + e.getMessage(), e);
         } catch (CompressorException e) {
-            log.error("{}", e);
-            throw new RuntimeException("压缩文件异常 " + e.getMessage());
+            throw new RuntimeException("压缩文件异常 " + e.getMessage(), e);
         } catch (IOException e) {
-            log.error("{}", e);
-            throw new RuntimeException("io操作异常 " + e.getMessage());
+            throw new RuntimeException("io操作异常 " + e.getMessage(), e);
         }
     }
 
-    public static File packageToTarGzFile(Collection<File> filesToArchive, String targetFileName) {
+    public static File packageToTarGzFile(Collection<File> filesToArchive, String targetFile) {
 
-        return packageToTarGzFile(filesToArchive, new File(targetFileName));
+        return packageToTarGzFile(filesToArchive, new File(targetFile));
     }
 
     public static File packageToTarGzFile(Collection<File> filesToArchive, File dir, String targetFileName) {
@@ -125,71 +122,163 @@ public class CompressorUtil {
         return packageToTarGzFile(filesToArchive, new File(dir, targetFileName));
     }
 
+    public static File packageToTarGzFile(Collection<File> filesToArchive, String dir, String targetFileName) {
+        mkdir(new File(dir));
+
+        return packageToTarGzFile(filesToArchive, new File(dir, targetFileName));
+    }
+
+    /**
+     * @see CompressorUtil#unPackage(File, ArchiveType, File)
+     */
+    public static List<File> unPackage(String packagedFile, ArchiveType archiveType, String dir) {
+        if (packagedFile == null || dir == null) {
+            throw new IllegalArgumentException("输入参数不能为null");
+
+        }
+
+        return unPackage(new File(packagedFile), archiveType, new File(dir));
+    }
+
     /**
      * 解包已经打包的文件，如zip，tar等
      *
      * @param packagedFile
      *            打包的文件
+     * @param archiveType
+     *            需要解包的类型
      * @param dir
      *            目标目录
-     * @return 解包后的所有File对象，包含目录
+     * @return 解包后的所有文件
      */
-    public static List<File> unPackage(File packagedFile, File dir) {
+    public static List<File> unPackage(File packagedFile, ArchiveType archiveType, File dir) {
         checkArgsAndMkDir(packagedFile, dir);
 
-        String packageType = getFileType(packagedFile);
+        if (archiveType == null) {
+            throw new IllegalArgumentException("输入参数不能为null");
+
+        }
 
         try (InputStream inputStream = Files.newInputStream(packagedFile.toPath());
 
             ArchiveInputStream archiveInputStream =
-                ARCHIVE_FACTORY.createArchiveInputStream(packageType, inputStream)) {
+                ARCHIVE_FACTORY.createArchiveInputStream(archiveType.getArchiveType(), inputStream)) {
 
             return resolveArchive(archiveInputStream, dir);
         } catch (ArchiveException e) {
-            log.error("{}", e);
-            throw new RuntimeException("归档文件异常 " + e.getMessage());
+            throw new RuntimeException("归档文件异常 " + e.getMessage(), e);
         } catch (IOException e) {
-            log.error("{}", e);
-            throw new RuntimeException("io操作异常 " + e.getMessage());
+            throw new RuntimeException("io操作异常 " + e.getMessage(), e);
         }
     }
 
     /**
-     * 解压缩压缩后的文件，如gz等
+     * @see CompressorUtil#unCompress(File, CompressType, File)
+     */
+    public static File unCompress(String compressFile, CompressType compressType, String targetFile) {
+        if (compressFile == null || targetFile == null) {
+            throw new IllegalArgumentException("输入参数不能为null");
+
+        }
+
+        return unCompress(new File(compressFile), compressType, new File(targetFile));
+    }
+
+    /**
+     * 将原压缩文件，根据压缩类型，进行解压缩，生成targetFile文件
      *
      * @param compressFile
      *            压缩文件
-     * @param dir
-     *            目标目录
-     * @return 解压缩后的所有File对象，包含目录
+     * @param compressType
+     *            压缩文件的压缩类型
+     * @param targetFile
+     *            解压后的目标文件
+     * @return 解压缩后的File对象
      */
-    public static List<File> unCompress(File compressFile, File dir) {
-        checkArgsAndMkDir(compressFile, dir);
+    public static File unCompress(File compressFile, CompressType compressType, File targetFile) {
+        checkSrcFile(compressFile);
 
-        String simpleName = getFileSimpleName(compressFile);
-        String compressType = getFileType(compressFile);
-
-        List<File> unPackageFiles = new ArrayList<>(10);
+        if (targetFile == null) {
+            throw new IllegalArgumentException("targetFile不能为null");
+        }
 
         try (InputStream inputStream = Files.newInputStream(compressFile.toPath());
-
             CompressorInputStream compressorInputStream =
-                COMPRESSOR_FACTORY.createCompressorInputStream(compressType, inputStream)) {
+                COMPRESSOR_FACTORY.createCompressorInputStream(compressType.getCompressType(), inputStream);
+            OutputStream outputStream = Files.newOutputStream(targetFile.toPath())) {
 
-            File target = new File(dir, simpleName);
-            try (OutputStream outputStream = Files.newOutputStream(target.toPath())) {
-                IOUtils.copy(compressorInputStream, outputStream, IO_BUFFER);
-            }
+            IOUtils.copy(compressorInputStream, outputStream, IO_BUFFER);
 
-            unPackageFiles.add(target);
-            return unPackageFiles;
+            return targetFile;
         } catch (CompressorException e) {
-            log.error("{}", e);
-            throw new RuntimeException("压缩文件异常 " + e.getMessage());
+            throw new RuntimeException("压缩文件异常 " + e.getMessage(), e);
         } catch (IOException e) {
-            log.error("{}", e);
-            throw new RuntimeException("io操作异常 " + e.getMessage());
+            throw new RuntimeException("io操作异常 " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * @see CompressorUtil#compressFile(File, CompressType, File)
+     */
+    public static File compressFile(String unCompressFile, CompressType compressType, String compressFile) {
+        if (unCompressFile == null || compressFile == null) {
+            throw new IllegalArgumentException("输入参数不能为null");
+
+        }
+
+        return compressFile(new File(unCompressFile), compressType, new File(compressFile));
+    }
+
+    /**
+     * 将原文件unCompressFile，根据压缩类型，进行压缩，生成compressFile
+     * 
+     * @param unCompressFile
+     *            原文件
+     * @param compressType
+     *            压缩的类型
+     * @param compressFile
+     *            压缩后的文件
+     * @return 压缩后的文件
+     */
+    public static File compressFile(File unCompressFile, CompressType compressType, File compressFile) {
+        checkSrcFile(unCompressFile);
+
+        if (compressFile == null || compressType == null) {
+            throw new IllegalArgumentException("输入参数不能为null");
+
+        }
+
+        try (InputStream inputStream = Files.newInputStream(unCompressFile.toPath());
+
+            OutputStream outputStream = Files.newOutputStream(compressFile.toPath());
+
+            CompressorOutputStream compressorOutputStream =
+                COMPRESSOR_FACTORY.createCompressorOutputStream(compressType.getCompressType(), outputStream)) {
+
+            IOUtils.copy(inputStream, compressorOutputStream, IO_BUFFER);
+
+            return compressFile;
+        } catch (CompressorException e) {
+            throw new RuntimeException("压缩文件异常 " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException("io操作异常 " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * @see CompressorUtil#unCompressTarGZ(File, File)
+     * @param gzFile
+     *            文件的绝对路径
+     * @param dir
+     *            目录的绝对路径
+     * @return 解压缩后的所有File对象，包含目录
+     */
+    public static List<File> unCompressTarGZ(String gzFile, String dir) {
+        if (gzFile == null || dir == null) {
+            throw new IllegalArgumentException("输入参数不能为null");
+        }
+
+        return unCompressTarGZ(new File(gzFile), new File(dir));
     }
 
     /**
@@ -208,11 +297,19 @@ public class CompressorUtil {
 
             return unCompressTarGZ(inputStream, dir);
         } catch (IOException e) {
-            log.error("{}", e);
-            throw new RuntimeException("io操作异常 " + e.getMessage());
+            throw new RuntimeException("io操作异常 " + e.getMessage(), e);
         }
     }
 
+    /**
+     * 解压tar.gz文件
+     * 
+     * @param inputStream
+     *            tar.gz文件流
+     * @param dir
+     *            解压到的目录
+     * @return 解压后的所有文件
+     */
     public static List<File> unCompressTarGZ(InputStream inputStream, File dir) {
         mkdir(dir);
 
@@ -225,14 +322,11 @@ public class CompressorUtil {
 
             return resolveArchive(archiveInputStream, dir);
         } catch (ArchiveException e) {
-            log.error("{}", e);
-            throw new RuntimeException("归档文件异常 " + e.getMessage());
+            throw new RuntimeException("归档文件异常 " + e.getMessage(), e);
         } catch (CompressorException e) {
-            log.error("{}", e);
-            throw new RuntimeException("压缩文件异常 " + e.getMessage());
+            throw new RuntimeException("压缩文件异常 " + e.getMessage(), e);
         } catch (IOException e) {
-            log.error("{}", e);
-            throw new RuntimeException("io操作异常 " + e.getMessage());
+            throw new RuntimeException("io操作异常 " + e.getMessage(), e);
         }
     }
 
@@ -308,8 +402,15 @@ public class CompressorUtil {
     }
 
     private static void checkArgsAndMkDir(File srcFile, File dir) {
-        Assert.notNull(srcFile, "srcFile不能为null");
-        Assert.notNull(dir, "dir不能为null");
+        checkSrcFile(srcFile);
+
+        mkdir(dir);
+    }
+
+    private static void checkSrcFile(File srcFile) {
+        if (srcFile == null) {
+            throw new IllegalArgumentException("srcFile不能为null");
+        }
 
         if (!srcFile.exists()) {
             throw new IllegalArgumentException("不存在该文件srcFile：" + srcFile.getAbsolutePath());
@@ -320,11 +421,14 @@ public class CompressorUtil {
             throw new IllegalArgumentException("srcFile不能是目录文件");
 
         }
-
-        mkdir(dir);
     }
 
     private static void mkdir(File dir) {
+        if (dir == null) {
+            throw new IllegalArgumentException("dir不能为null");
+
+        }
+
         if (dir.isFile()) {
             throw new IllegalArgumentException("dir不能是文件");
 
