@@ -49,7 +49,7 @@ public class CsvToBeanUtil {
      * @param bufferedWriter
      *            输出的文件writer
      * @param separator
-     *            csv的分隔符，这里只支持单个字符，推荐用
+     *            csv的分隔符，这里只支持单个字符,如果char已经可以满足你的需求，则不需要后续处理，推荐用
      *            {@link CsvToBeanUtil#DEFAULT_SEPARATOR_CHAR}。如果需要分隔符变为其他字符串，请在文件完全生成后调用{@link CsvToBeanUtil#toCanProcessFile(File, Charset, String, String)}
      * @param needQuote
      *            是否需要双引号括住字段
