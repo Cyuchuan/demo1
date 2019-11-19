@@ -19,6 +19,7 @@ import com.cyc.demo1.pojo.Person;
 import com.opencsv.bean.StatefulBeanToCsv;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.test.context.SpringBootTest;
 
 @Slf4j
 public class CsvToBeanUtilTest {
@@ -174,9 +175,9 @@ public class CsvToBeanUtilTest {
             StatefulBeanToCsv csvWriter =
                 CsvToBeanUtil.getCsvWriter(bufferedWriter, CsvToBeanUtil.DEFAULT_SEPARATOR_CHAR);
 
-            // 业务处理，模拟取数，一次1000个数据，一次写入文件，连续2次
+            // 业务处理，模拟取数，一次5000个数据，一次写入文件，连续10000次
             List<Person> personList = new ArrayList<>();
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < 5000; i++) {
                 Person person = new Person();
                 person.setAge(ThreadLocalRandom.current().nextInt(100));
                 person.setName("小明");
@@ -185,11 +186,11 @@ public class CsvToBeanUtilTest {
                 personList.add(person);
             }
 
-            // 第一次输出
-            csvWriter.write(personList);
+            // 模拟循环取数后，写入文件
+            for (int i = 0; i < 10000; i++) {
+                csvWriter.write(personList);
 
-            // 第二次输出
-            csvWriter.write(personList);
+            }
 
             // 当然也可以输出单个
             Person person = new Person();
