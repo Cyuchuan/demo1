@@ -14,15 +14,13 @@ public class CompressorUtilTest {
 
     @Test
     public void packageToFile() {
-        File zip = CompressorUtil.packageToFile(Arrays.asList(new File("needpackage"), new File("src")),
-            "packageToFile.zip", ArchiveType.ZIP);
+        File zip = CompressorUtil.packageToFile(Arrays.asList(new File("src")), "packageToFile.zip", ArchiveType.ZIP);
         assertThat(zip.getName(), CoreMatchers.equalTo("packageToFile.zip"));
     }
 
     @Test
     public void packageToTarGzFile() {
-        File tarGzFile = CompressorUtil.packageToTarGzFile(Arrays.asList(new File("needpackage"), new File("src")),
-            "packageToFile.tar.gz");
+        File tarGzFile = CompressorUtil.packageToTarGzFile(Arrays.asList(new File("src")), "packageToFile.tar.gz");
         assertThat(tarGzFile.getName(), CoreMatchers.equalTo("packageToFile.tar.gz"));
 
     }

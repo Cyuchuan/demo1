@@ -3,6 +3,7 @@ package com.cyc.demo1.pojo;
 import java.util.Date;
 
 import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvDate;
 
 import lombok.AllArgsConstructor;

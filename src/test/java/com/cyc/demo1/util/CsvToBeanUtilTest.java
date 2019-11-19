@@ -1,9 +1,6 @@
 package com.cyc.demo1.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -19,6 +16,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cyc.demo1.pojo.Person;
+import com.opencsv.bean.StatefulBeanToCsv;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -165,6 +163,61 @@ public class CsvToBeanUtilTest {
         CsvToBeanUtil.writeBeansToFile(personList, new File("ceshi"), StandardCharsets.UTF_8, "@!@");
 
         CsvToBeanUtil.writeBeansToFile(personList, new File("ceshi1"), StandardCharsets.UTF_8, "@!@", true);
+
+    }
+
+    @Test
+    public void getCsvWriter() {
+        final File file = new File("迭代输出.csv");
+        try (FileOutputStream fileOutputStream = FileUtils.openOutputStream(file); BufferedWriter bufferedWriter =
+            new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8))) {
+            StatefulBeanToCsv csvWriter =
+                CsvToBeanUtil.getCsvWriter(bufferedWriter, CsvToBeanUtil.DEFAULT_SEPARATOR_CHAR);
+
+            // 业务处理，模拟取数，一次1000个数据，一次写入文件，连续2次
+            List<Person> personList = new ArrayList<>();
+            for (int i = 0; i < 1000; i++) {
+                Person person = new Person();
+                person.setAge(ThreadLocalRandom.current().nextInt(100));
+                person.setName("小明");
+                person.setBrithday(new Date());
+
+                personList.add(person);
+            }
+
+            // 第一次输出
+            csvWriter.write(personList);
+
+            // 第二次输出
+            csvWriter.write(personList);
+
+            // 当然也可以输出单个
+            Person person = new Person();
+            person.setAge(ThreadLocalRandom.current().nextInt(100));
+            person.setName("小明");
+            person.setBrithday(new Date());
+            csvWriter.write(person);
+
+            // 输出完毕，需要flush
+            bufferedWriter.flush();
+        } catch (Exception e) {
+            // 异常处理
+        }
+
+        File tempFile = null;
+        try {
+            // 现在是\u0001，可能不是很满足我们的要求，我们需要@!@，文件名字还是需要 迭代输出.csv
+            tempFile = CsvToBeanUtil.toCanProcessFile(file, StandardCharsets.UTF_8, CsvToBeanUtil.DEFAULT_SEPARATOR_STR,
+                "@!@");
+
+            FileUtils.copyFile(tempFile, file);
+
+        } catch (IOException e) {
+            // 异常处理
+
+        } finally {
+            FileUtils.deleteQuietly(tempFile);
+        }
 
     }
 
