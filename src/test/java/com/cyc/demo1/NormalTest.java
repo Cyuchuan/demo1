@@ -8,11 +8,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -21,7 +23,6 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
-import com.cyc.demo1.util.CompressorUtil;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -39,7 +40,13 @@ import com.cyc.demo1.jdkproxy.MathService;
 import com.cyc.demo1.jdkproxy.MathServiceImp;
 import com.cyc.demo1.listener.CustomListener1;
 import com.cyc.demo1.listener.Service;
+import com.cyc.demo1.pojo.Person;
 import com.cyc.demo1.random.RandomUtil;
+import com.cyc.demo1.util.CompressorUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +55,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class NormalTest {
+    private static final ObjectMapper MAPPER;
+
+    static {
+        MAPPER = new ObjectMapper();
+        MAPPER.registerModules(new ParameterNamesModule(), new Jdk8Module(), new JavaTimeModule());
+
+    }
 
     @Test
     public void test() {
@@ -55,6 +69,15 @@ public class NormalTest {
         boolean annotationDeclaredLocally =
             AnnotationUtils.isAnnotationDeclaredLocally(Order.class, CustomListener1.class);
         log.error("{}", annotationDeclaredLocally);
+    }
+
+    @Test
+    public void test12() throws Exception {
+        URL resource = NormalTest.class.getClassLoader().getResource("test/nio-test-1.txt");
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resource.openStream()));
+
+        String s = bufferedReader.readLine();
+        log.error("{}", s);
     }
 
     @Test
@@ -74,6 +97,22 @@ public class NormalTest {
         // }
         // });
 
+    }
+
+    @Test
+    public void test123() throws Exception {
+
+        Person person = new Person();
+        person.setBrithday(new Date());
+        person.setAge(0);
+        person.setName("");
+        person.setDateTime(new Date());
+
+        String string = MAPPER.writeValueAsString(person);
+        log.error("{}", string);
+
+        Person person1 = MAPPER.readValue(string, Person.class);
+        log.error("{}", person1);
     }
 
     @Test

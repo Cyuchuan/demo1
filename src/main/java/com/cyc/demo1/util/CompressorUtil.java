@@ -10,12 +10,18 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.util.Zip4jConstants;
 import org.apache.commons.compress.archivers.*;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorOutputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author chenyuchuan
@@ -130,6 +136,103 @@ public class CompressorUtil {
     }
 
     /**
+     * 打包到加密的zip文件中
+     * 
+     * @param filesToArchive
+     *            需要打包的文件
+     * @param encryptedZipFile
+     *            打包加密到的zip文件
+     * @param password
+     *            加密的字符串
+     * @return 加密后的zip文件
+     */
+    public static File packageToEncryptedZipFile(Collection<File> filesToArchive, File encryptedZipFile,
+        String password) {
+        if (filesToArchive == null || encryptedZipFile == null) {
+            throw new IllegalArgumentException("参数不能为null");
+        }
+
+        if (encryptedZipFile.exists()) {
+            FileUtils.deleteQuietly(encryptedZipFile);
+        }
+
+        try {
+            // 生成的压缩文件
+            ZipFile zipFile = new ZipFile(encryptedZipFile);
+
+            ZipParameters parameters = new ZipParameters();
+            // 压缩方式
+            parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
+            // 压缩级别
+            parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
+
+            if (StringUtils.isNotBlank(password)) {
+
+                parameters.setEncryptFiles(true);
+
+                parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_AES);
+
+                parameters.setAesKeyStrength(Zip4jConstants.AES_STRENGTH_256);
+
+                parameters.setPassword(password);
+            }
+
+            // 要打包的文件
+            for (File f : filesToArchive) {
+                if (f.isDirectory()) {
+                    zipFile.addFolder(f.getPath(), parameters);
+                } else {
+                    zipFile.addFile(f, parameters);
+                }
+            }
+            return encryptedZipFile;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
+     * 解包加密的zip包，到目录下
+     * 
+     * @param encryptedZipFile
+     *            加密后的zip文件
+     * @param dir
+     *            解压后的目录
+     * @param password
+     *            密码
+     * @return 解压后的所有文件，不包括文件夹
+     */
+    public static List<File> unPackageEncryptedZipFile(File encryptedZipFile, File dir, String password) {
+        checkArgsAndMkDir(encryptedZipFile, dir);
+
+        try {
+            ZipFile zipFile = new ZipFile(encryptedZipFile);
+            if (!zipFile.isValidZipFile()) {
+                throw new RuntimeException("压缩文件不合法,可能被损坏.");
+            }
+
+            if (zipFile.isEncrypted()) {
+                zipFile.setPassword(password);
+            }
+
+            zipFile.extractAll(dir.getAbsolutePath());
+
+            List<FileHeader> headerList = zipFile.getFileHeaders();
+            List<File> extractedFileList = new ArrayList<>();
+            for (FileHeader fileHeader : headerList) {
+                if (!fileHeader.isDirectory()) {
+                    extractedFileList.add(new File(dir, fileHeader.getFileName()));
+                }
+            }
+            return extractedFileList;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
      * @see CompressorUtil#unPackage(File, ArchiveType, File)
      */
     public static List<File> unPackage(String packagedFile, ArchiveType archiveType, String dir) {
@@ -150,7 +253,7 @@ public class CompressorUtil {
      *            需要解包的类型
      * @param dir
      *            目标目录
-     * @return 解包后的所有文件
+     * @return 解包后的所有的文件
      */
     public static List<File> unPackage(File packagedFile, ArchiveType archiveType, File dir) {
         checkArgsAndMkDir(packagedFile, dir);
@@ -309,7 +412,7 @@ public class CompressorUtil {
      *            tar.gz文件流
      * @param dir
      *            解压到的目录
-     * @return 解压后的所有文件
+     * @return 解压后的所有的文件
      */
     public static List<File> unCompressTarGZ(InputStream inputStream, File dir) {
         mkdir(dir);
@@ -406,9 +509,8 @@ public class CompressorUtil {
                 try (OutputStream outputStream = Files.newOutputStream(entryToFile.toPath())) {
                     IOUtils.copy(archiveInputStream, outputStream, IO_BUFFER);
                 }
+                resolveFiles.add(entryToFile);
             }
-
-            resolveFiles.add(entryToFile);
         }
         return resolveFiles;
     }
