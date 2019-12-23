@@ -28,14 +28,29 @@ public class CompressorUtilTest {
     @Test
     public void unPackage() {
         List<File> files = CompressorUtil.unPackage("packageToFile.zip", ArchiveType.ZIP, "unzip");
-        assertThat(files.get(0).getParentFile().getName(), CoreMatchers.equalTo("unzip"));
+        assertThat(files.size(),CoreMatchers.equalTo(137));
 
     }
 
     @Test
     public void unCompressTarGZ() {
         List<File> files = CompressorUtil.unCompressTarGZ(new File("packageToFile.tar.gz"), new File("untargz"));
-        assertThat(files.get(0).getParentFile().getName(), CoreMatchers.equalTo("untargz"));
+        assertThat(files.size(),CoreMatchers.equalTo(137));
+
+    }
+
+    @Test
+    public void packageToEncryptedZipFile() {
+        File src = CompressorUtil.packageToEncryptedZipFile(Arrays.asList(new File("src")), new File("packageToFile1.zip"),
+                "123456");
+        assertThat(src.getName(), CoreMatchers.equalTo("packageToFile1.zip"));
+
+    }
+
+    @Test
+    public void unPackageEncryptedZipFile() {
+        List<File> packageToFile1 = CompressorUtil.unPackageEncryptedZipFile(new File("packageToFile1.zip"), new File("packageToFile1"), "123456");
+        assertThat(packageToFile1.size(),CoreMatchers.equalTo(137));
 
     }
 
