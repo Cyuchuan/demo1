@@ -11,6 +11,7 @@
     <result column="TIME" jdbcType="DATE" property="time" />
     <result column="DATE" jdbcType="DATE" property="date" />
     <result column="DATETIME" jdbcType="TIMESTAMP" property="datetime" />
+    <result column="FILE_TYPE_ENUMERATION" jdbcType="VARCHAR" property="fileTypeEnumeration"/>
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -71,7 +72,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    ID, REVISION, CREATED_BY, CREATED_TIME, UPDATED_BY, UPDATED_TIME, TIME, DATE, DATETIME
+    ID, REVISION, CREATED_BY, CREATED_TIME, UPDATED_BY, UPDATED_TIME, TIME, DATE, DATETIME,FILE_TYPE_ENUMERATION
   </sql>
   <select id="selectByExample" parameterType="com.cyc.demo1.entity.TestDateExample" resultMap="BaseResultMap">
     select
@@ -106,10 +107,10 @@
   <insert id="insert" parameterType="com.cyc.demo1.entity.TestDate">
     insert into TEST_DATE (ID, REVISION, CREATED_BY, 
       CREATED_TIME, UPDATED_BY, UPDATED_TIME, 
-      TIME, DATE, DATETIME)
+      TIME, DATE, DATETIME,FILE_TYPE_ENUMERATION)
     values (#{id,jdbcType=BIGINT}, #{revision,jdbcType=INTEGER}, #{createdBy,jdbcType=VARCHAR}, 
       #{createdTime,jdbcType=TIMESTAMP}, #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}, 
-      #{time,jdbcType=DATE}, #{date,jdbcType=DATE}, #{datetime,jdbcType=TIMESTAMP})
+      #{time,jdbcType=DATE}, #{date,jdbcType=DATE}, #{datetime,jdbcType=TIMESTAMP},#{fileTypeEnumeration,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.cyc.demo1.entity.TestDate">
     insert into TEST_DATE
