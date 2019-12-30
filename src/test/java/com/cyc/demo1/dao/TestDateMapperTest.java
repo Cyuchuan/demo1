@@ -2,6 +2,7 @@ package com.cyc.demo1.dao;
 
 import java.util.Date;
 
+import com.cyc.demo1.enumeration.FileTypeEnumeration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class TestDateMapperTest {
     @Test
     public void insert() {
         TestDate testDate = new TestDate();
-        testDate.setId(1L);
+        testDate.setId(2L);
         testDate.setRevision(0);
         testDate.setCreatedBy("");
         testDate.setCreatedTime(new Date());
@@ -31,8 +32,8 @@ public class TestDateMapperTest {
         testDate.setTime(new Date());
         testDate.setDate(new Date());
         testDate.setDatetime(new Date());
-
-        testDateMapper.insertSelective(testDate);
+        testDate.setFileTypeEnumeration(FileTypeEnumeration.ZIBENZHUYI);
+        testDateMapper.insert(testDate);
     }
 
     @Test

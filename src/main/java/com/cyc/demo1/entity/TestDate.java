@@ -1,5 +1,6 @@
 package com.cyc.demo1.entity;
 
+import com.cyc.demo1.enumeration.FileTypeEnumeration;
 import lombok.Data;
 
 import java.util.Date;
@@ -23,4 +24,6 @@ public class TestDate {
     private Date date;
 
     private Date datetime;
+
+    private FileTypeEnumeration fileTypeEnumeration;
 }

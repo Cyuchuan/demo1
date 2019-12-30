@@ -29,7 +29,7 @@ public class A implements Service {
         log.error("进行A服务");
         log.error("A服务完成");
 
-        applicationContext.publishEvent(new AfterADoneEvent("A服务已完成后，给其他服务的对象"));
+//        applicationContext.publishEvent(new AfterADoneEvent("A服务已完成后，给其他服务的对象"));
 
     }
 

@@ -14,7 +14,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalTime;
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -24,6 +24,8 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -100,13 +102,44 @@ public class NormalTest {
     }
 
     @Test
+    public void stringDate() throws ParseException {
+        String a = "14:00:00";
+        Date date = DateUtils.parseDate(a, "HH:mm:ss");
+
+        String format2 = DateFormatUtils.format(new Date(), "HH:mm:ss");
+        log.error("{}",format2.compareTo(a));
+
+        Date date1 = DateUtils.parseDate(format2, "HH:mm:ss");
+        log.error("{}", date1);
+
+        log.error("{}", date1.after(date));
+
+    }
+
+    @Test
     public void test123() throws Exception {
 
         Person person = new Person();
         person.setBrithday(new Date());
         person.setAge(0);
         person.setName("");
-        person.setDateTime(new Date());
+        HashSet<Date> objects = new HashSet<>();
+        objects.add(new Date(10000000));
+        objects.add(new Date(20000000));
+        objects.add(new Date(30000000));
+        objects.add(new Date(40000000));
+        objects.add(new Date(50000000));
+
+        person.setDateSet(objects);
+
+
+        HashSet<Person.DialTimeZone> dialTimeZoneSet = new HashSet<>();
+
+        Person.DialTimeZone dialTimeZone = new Person.DialTimeZone();
+        dialTimeZone.setStartTime(new Date());
+        dialTimeZone.setEndTime(new Date(new Date().getTime() + 500000L));
+        dialTimeZoneSet.add(dialTimeZone);
+        person.setDialTimeZoneSet(dialTimeZoneSet);
 
         String string = MAPPER.writeValueAsString(person);
         log.error("{}", string);
