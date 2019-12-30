@@ -1,11 +1,9 @@
 package com.cyc.demo1.pojo;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Date;
+import java.util.Set;
 
-import org.joda.time.DateTime;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.opencsv.bean.CsvBindByName;
@@ -15,7 +13,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * @author chenyuchuan
@@ -33,7 +30,19 @@ public class Person {
     private int age;
     @CsvBindByName(column = "name")
     private String name;
-    @JsonFormat(pattern = "hh:mm:ss",timezone = "GMT+8")
-    @DateTimeFormat(pattern = "hh:mm:ss")
-    private Date dateTime;
+    @JsonFormat(pattern = "yyyyMMdd", timezone = "GMT+8")
+    @DateTimeFormat(pattern = "yyyyMMdd")
+    private Set<Date> dateSet;
+
+    private Set<DialTimeZone> dialTimeZoneSet;
+
+    @Data
+    public static class DialTimeZone {
+        @JsonFormat(pattern = "HH:mm:ss", timezone = "GMT+8")
+        @DateTimeFormat(pattern = "HH:mm:ss")
+        private Date startTime;
+        @JsonFormat(pattern = "HH:mm:ss", timezone = "GMT+8")
+        @DateTimeFormat(pattern = "HH:mm:ss")
+        private Date endTime;
+    }
 }

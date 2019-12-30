@@ -19,14 +19,16 @@ import com.cyc.demo1.eventservice.A;
 import com.cyc.demo1.service.ContentService;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableAspectJAutoProxy
 @EnableAsync
 @MapperScan("com.cyc.demo1.dao")
+@EnableScheduling
 @EnableContentService()
 @Slf4j
-public class Demo1Application implements CommandLineRunner {
+public class Demo1Application {
 
     @Autowired
     A thisIsTest;
@@ -47,18 +49,14 @@ public class Demo1Application implements CommandLineRunner {
     AnnotationAdviceService annotationAdviceService;
 
     public static void main(String[] args) {
+        for (String arg : args) {
+            log.error("{}", arg);
+
+        }
         ConfigurableApplicationContext run = SpringApplication.run(Demo1Application.class, args);
 
         ContentService bean = run.getBean(ContentService.class);
         log.error("{}", bean.content());
-    }
 
-    @Override
-    public void run(String... args) throws Exception {
-        signalInterfaceA.doSomething();
-        log.error("{}", myConfig);
-        log.error("{}", myConfigInMyProperties);
-        annotationAdviceService.exceptionService("hello");
-        thisIsTest.service();
     }
 }

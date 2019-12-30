@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <typeHandlers>
+        <typeHandler handler="com.cyc.demo1.TypeHandler.FileTypeEnumHandler"
+                     javaType="com.cyc.demo1.enumeration.FileTypeEnumeration" jdbcType="VARCHAR"/>
+    </typeHandlers>
+
+    <plugins>
+
+        <plugin interceptor="com.cyc.demo1.plugin.MybatisLoggerInterceptor"/>
+
+    </plugins>
+
+</configuration>
