@@ -28,8 +28,8 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.annotation.Order;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.io.ClassPathResource;
 
 import com.cyc.demo1.dto.Pojo;
@@ -40,7 +40,6 @@ import com.cyc.demo1.exception.NoBatchProcessException;
 import com.cyc.demo1.jdkproxy.MathHandle;
 import com.cyc.demo1.jdkproxy.MathService;
 import com.cyc.demo1.jdkproxy.MathServiceImp;
-import com.cyc.demo1.listener.CustomListener1;
 import com.cyc.demo1.listener.Service;
 import com.cyc.demo1.pojo.Person;
 import com.cyc.demo1.random.RandomUtil;
@@ -68,9 +67,11 @@ public class NormalTest {
     @Test
     public void test() {
 
-        boolean annotationDeclaredLocally =
-            AnnotationUtils.isAnnotationDeclaredLocally(Order.class, CustomListener1.class);
-        log.error("{}", annotationDeclaredLocally);
+        Map<Integer, List<Integer>> map = new HashMap<>();
+        map.put(new Integer(1), new LinkedList<>());
+        Pojo pojo = new Pojo();
+        BeanWrapper bw = new BeanWrapperImpl(pojo);
+        bw.setPropertyValue("mapOfLists[1][0]", new Integer(5));
     }
 
     @Test
@@ -107,7 +108,7 @@ public class NormalTest {
         Date date = DateUtils.parseDate(a, "HH:mm:ss");
 
         String format2 = DateFormatUtils.format(new Date(), "HH:mm:ss");
-        log.error("{}",format2.compareTo(a));
+        log.error("{}", format2.compareTo(a));
 
         Date date1 = DateUtils.parseDate(format2, "HH:mm:ss");
         log.error("{}", date1);
@@ -131,7 +132,6 @@ public class NormalTest {
         objects.add(new Date(50000000));
 
         person.setDateSet(objects);
-
 
         HashSet<Person.DialTimeZone> dialTimeZoneSet = new HashSet<>();
 
