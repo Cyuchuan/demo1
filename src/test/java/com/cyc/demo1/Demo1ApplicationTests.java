@@ -1,7 +1,10 @@
 package com.cyc.demo1;
 
-import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -9,17 +12,18 @@ import javax.validation.Validator;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.cyc.demo1.dao.TestFieldMapper;
 import com.cyc.demo1.dto.Pojo;
-import com.cyc.demo1.entity.TestField;
-import com.cyc.demo1.entity.TestFieldExample;
 import com.cyc.demo1.entity.User3;
+import com.cyc.demo1.invoker.ServiceInterface;
 import com.cyc.demo1.service.ValidationService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,11 +47,89 @@ public class Demo1ApplicationTests {
     @Autowired
     private ValidationService validationService;
 
+    @Autowired
+    LockRegistry lockRegistry;
+
+    @Autowired
+    @Qualifier("httpInvokerProxyFactoryBean")
+    ServiceInterface httpInvokerProxyFactoryBean;
+
     @Test
     public void contextLoads() {
-        TestFieldExample testFieldExample = new TestFieldExample();
-        List<TestField> testFields = testFieldMapper.selectByExample(testFieldExample);
-        log.error("{}", testFields);
+        Lock key1 = lockRegistry.obtain("key1");
+
+        ThreadPoolExecutor threadPoolExecutor =
+            new ThreadPoolExecutor(10, 10, 60, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100));
+        Runnable runnable = () -> {
+            try {
+                key1.lock();
+                log.info("{}上key1锁", Thread.currentThread());
+
+            } catch (Exception e) {
+                log.error("", e);
+            } finally {
+                key1.unlock();
+            }
+        };
+
+        threadPoolExecutor.execute(runnable);
+        threadPoolExecutor.execute(runnable);
+        threadPoolExecutor.execute(runnable);
+        threadPoolExecutor.execute(runnable);
+        threadPoolExecutor.execute(runnable);
+
+        try {
+            key1.lock();
+            log.info("上key1锁");
+
+        } catch (Exception e) {
+            log.error("", e);
+        } finally {
+            key1.unlock();
+        }
+
+    }
+
+    @Test
+    public void tes123() {
+        ServiceInterface serviceInterface = this.httpInvokerProxyFactoryBean;
+        serviceInterface.print();
+    }
+
+    @Test
+    public void contextLoads1() {
+        Lock key1 = lockRegistry.obtain("key1");
+
+        ThreadPoolExecutor threadPoolExecutor =
+            new ThreadPoolExecutor(10, 10, 60, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100));
+        Runnable runnable = () -> {
+            try {
+                key1.lock();
+                log.info("{}上key1锁", Thread.currentThread());
+
+            } catch (Exception e) {
+                log.error("", e);
+            } finally {
+                key1.unlock();
+            }
+        };
+
+        threadPoolExecutor.execute(runnable);
+        threadPoolExecutor.execute(runnable);
+        threadPoolExecutor.execute(runnable);
+        threadPoolExecutor.execute(runnable);
+        threadPoolExecutor.execute(runnable);
+
+        try {
+            key1.lock();
+            log.info("上key1锁");
+
+        } catch (Exception e) {
+            log.error("", e);
+        } finally {
+            key1.unlock();
+        }
+
     }
 
     @Test

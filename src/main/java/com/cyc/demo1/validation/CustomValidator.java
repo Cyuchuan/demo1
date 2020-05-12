@@ -10,6 +10,11 @@ import org.springframework.util.StringUtils;
  */
 public class CustomValidator implements ConstraintValidator<CustomValidation, String> {
     @Override
+    public void initialize(CustomValidation customValidation) {
+
+    }
+
+    @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         if (StringUtils.hasText(value)) {
             if (value.contains("cyc")) {

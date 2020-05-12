@@ -1,11 +1,13 @@
 package com.cyc.demo1.entity;
 
-import com.cyc.demo1.validation.ValidationField;
+import java.util.Date;
+
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
-import java.util.Date;
+import com.cyc.demo1.validation.ValidationField;
 
 /**
  * @author chenyuchuan
@@ -14,7 +16,7 @@ public class User2 {
     @NotNull
     private String id1;
 
-    @Length(min = 0, max = 3,groups = ValidationField.class)
+    @Length(min = 0, max = 3, groups = ValidationField.class)
     private String userName1;
 
     @Email(regexp = ".*@qq\\.com")
@@ -22,8 +24,7 @@ public class User2 {
 
     private Date date1;
 
-    public User2() {
-    }
+    public User2() {}
 
     public @NotNull String getId1() {
         return this.id1;
@@ -58,22 +59,29 @@ public class User2 {
     }
 
     public boolean equals(Object o) {
-        if (o == this) return true;
-        if (!(o instanceof User2)) return false;
-        final User2 other = (User2) o;
-        if (!other.canEqual((Object) this)) return false;
+        if (o == this)
+            return true;
+        if (!(o instanceof User2))
+            return false;
+        final User2 other = (User2)o;
+        if (!other.canEqual((Object)this))
+            return false;
         final Object this$id1 = this.getId1();
         final Object other$id1 = other.getId1();
-        if (this$id1 == null ? other$id1 != null : !this$id1.equals(other$id1)) return false;
+        if (this$id1 == null ? other$id1 != null : !this$id1.equals(other$id1))
+            return false;
         final Object this$userName1 = this.getUserName1();
         final Object other$userName1 = other.getUserName1();
-        if (this$userName1 == null ? other$userName1 != null : !this$userName1.equals(other$userName1)) return false;
+        if (this$userName1 == null ? other$userName1 != null : !this$userName1.equals(other$userName1))
+            return false;
         final Object this$email1 = this.getEmail1();
         final Object other$email1 = other.getEmail1();
-        if (this$email1 == null ? other$email1 != null : !this$email1.equals(other$email1)) return false;
+        if (this$email1 == null ? other$email1 != null : !this$email1.equals(other$email1))
+            return false;
         final Object this$date1 = this.getDate1();
         final Object other$date1 = other.getDate1();
-        if (this$date1 == null ? other$date1 != null : !this$date1.equals(other$date1)) return false;
+        if (this$date1 == null ? other$date1 != null : !this$date1.equals(other$date1))
+            return false;
         return true;
     }
 
@@ -96,6 +104,7 @@ public class User2 {
     }
 
     public String toString() {
-        return "User2(id1=" + this.getId1() + ", userName1=" + this.getUserName1() + ", email1=" + this.getEmail1() + ", date1=" + this.getDate1() + ")";
+        return "User2(id1=" + this.getId1() + ", userName1=" + this.getUserName1() + ", email1=" + this.getEmail1()
+            + ", date1=" + this.getDate1() + ")";
     }
 }

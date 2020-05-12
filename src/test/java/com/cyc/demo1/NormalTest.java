@@ -45,9 +45,6 @@ import com.cyc.demo1.pojo.Person;
 import com.cyc.demo1.random.RandomUtil;
 import com.cyc.demo1.util.CompressorUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,7 +57,6 @@ public class NormalTest {
 
     static {
         MAPPER = new ObjectMapper();
-        MAPPER.registerModules(new ParameterNamesModule(), new Jdk8Module(), new JavaTimeModule());
 
     }
 
