@@ -1,6 +1,8 @@
 package com.cyc.demo1.dto;
 
-import com.cyc.demo1.validation.ErrorPrefixField;
+import com.cyc.demo1.enumeration.FileTypeEnumeration;
+import com.cyc.demo1.validation.InEnum;
+
 import lombok.Data;
 import lombok.ToString;
 
@@ -9,12 +11,12 @@ import lombok.ToString;
  */
 @Data
 @ToString(callSuper = true)
-@ErrorPrefixField({"id", "fileName"})
-public class Pojo1 extends Pojo{
+public class Pojo1 {
     private String notValidation1;
 
     private String id1;
 
+    @InEnum(inEnum = FileTypeEnumeration.class, methodName = "getValue")
     private String fileName1;
 
     private String fileType1;

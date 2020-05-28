@@ -1,9 +1,13 @@
 package com.cyc.demo1.dao;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+
 import com.cyc.demo1.entity.T1;
 import com.cyc.demo1.entity.T1Example;
-import java.util.List;
-import org.apache.ibatis.annotations.Param;
+
+import javax.validation.groups.Default;
 
 public interface T1Mapper {
     long countByExample(T1Example example);

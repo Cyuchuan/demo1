@@ -18,6 +18,10 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.*;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -29,6 +33,7 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.io.ClassPathResource;
 
 import com.cyc.demo1.dto.Pojo;
+import com.cyc.demo1.dto.Pojo1;
 import com.cyc.demo1.eventservice.A;
 import com.cyc.demo1.eventservice.B;
 import com.cyc.demo1.exception.NoBatchProcessException;
@@ -321,6 +326,21 @@ public class NormalTest {
 
         }
 
+    }
+
+    @Test
+    public void testValidation() {
+        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+        Pojo1 pojo1 = new Pojo1();
+        pojo1.setNotValidation1(null);
+        pojo1.setId1(null);
+        pojo1.setFileName1("13");
+        pojo1.setFileType1(null);
+        pojo1.setDate1("");
+
+        Set<ConstraintViolation<Pojo1>> validate = validator.validate(pojo1);
+        log.error("{}", validate);
     }
 
     @Test
