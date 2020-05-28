@@ -1,7 +1,9 @@
 package com.cyc.demo1.validation;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
@@ -25,6 +27,14 @@ public class JsonSchemaUtil {
 
     }
 
+    /**
+     * 验证json串是否满足jsonSchema的要求
+     * 
+     * @param json
+     *            json字符串
+     * @param jsonSchema
+     *            jsonSchema字符串
+     */
     public static void validateJsonBySchema(String json, String jsonSchema) {
         try {
             // json的node节点
@@ -56,5 +66,35 @@ public class JsonSchemaUtil {
             throw new RuntimeException(e);
         }
 
+    }
+
+    /**
+     * 获得jsonSchema的所有定义的属性
+     * 
+     * @param jsonSchema
+     */
+    public static List<String> getProperties(String jsonSchema) {
+        List<String> propertiesList = null;
+        try {
+            JsonNode jsonNode = JsonLoader.fromString(jsonSchema);
+
+            JsonNode properties = jsonNode.get("properties");
+
+            if (properties != null) {
+                int size = properties.size();
+                propertiesList = new ArrayList<>(size);
+
+                // 获得属性
+                Iterator<String> stringIterator = properties.fieldNames();
+                while (stringIterator.hasNext()) {
+                    String next = stringIterator.next();
+                    propertiesList.add(next);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return propertiesList;
     }
 }

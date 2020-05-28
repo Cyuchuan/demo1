@@ -324,10 +324,10 @@ public class NormalTest {
     }
 
     @Test
-    public void test12345() throws IOException {
+    public void test12345() throws Exception {
         String json = "{\n" + "  \"checked\": false,\n" + "  \"dimensions\": {\n" + "    \"width\": 5,\n"
-            + "    \"height\": 10\n" + "  },\n" + "  \"id\": 1,\n" + "  \"name\": \"das\",\n" + "  \"price\": 24,\n"
-            + "  \"tags\": [],\n" + "  \"person\": true\n" + "}";
+            + "    \"height\": 10\n" + "  },\n" + "  \"id\": 1,\n" + "  \"name\": null,\n" + "  \"price\": 12,\n"
+            + "  \"tags\": [],\n" + "  \"person\": true,\n" + "  \"abc\": null\n" + "}";
 
         String jsonSchema = "{\n" + "  \"type\": \"object\",\n" + "  \"default\": {},\n" + "  \"required\": [\n"
             + "    \"checked\",\n" + "    \"dimensions\",\n" + "    \"id\",\n" + "    \"name\",\n" + "    \"price\",\n"
@@ -368,6 +368,8 @@ public class NormalTest {
             + "        \"description\": \"An explanation about the purpose of this instance.\",\n"
             + "        \"default\": \"\"\n" + "      }\n" + "    },\n" + "    \"person\": {\n"
             + "      \"type\": \"boolean\"\n" + "    }\n" + "  }\n" + "}";
+
+        List<String> properties = JsonSchemaUtil.getProperties(jsonSchema);
 
         JsonSchemaUtil.validateJsonBySchema(json, jsonSchema);
     }
