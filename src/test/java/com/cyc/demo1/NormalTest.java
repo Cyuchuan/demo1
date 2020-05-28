@@ -18,22 +18,17 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.*;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
+import org.quartz.CronExpression;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.io.ClassPathResource;
 
 import com.cyc.demo1.dto.Pojo;
-import com.cyc.demo1.entity.User3;
 import com.cyc.demo1.eventservice.A;
 import com.cyc.demo1.eventservice.B;
 import com.cyc.demo1.exception.NoBatchProcessException;
@@ -44,6 +39,7 @@ import com.cyc.demo1.listener.Service;
 import com.cyc.demo1.pojo.Person;
 import com.cyc.demo1.random.RandomUtil;
 import com.cyc.demo1.util.CompressorUtil;
+import com.cyc.demo1.validation.JsonSchemaUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +53,22 @@ public class NormalTest {
 
     static {
         MAPPER = new ObjectMapper();
+
+    }
+
+    @Test
+    public void test1234() throws ParseException {
+        long begin = System.currentTimeMillis();
+
+        for (int i = 0; i < 10000; i++) {
+            CronExpression cronExpression = new CronExpression("* * * ? * 4 *");
+
+            cronExpression.setTimeZone(TimeZone.getDefault());
+
+            cronExpression.isSatisfiedBy(new Date());
+
+        }
+        log.info("耗时:{}", System.currentTimeMillis() - begin);
 
     }
 
@@ -312,18 +324,58 @@ public class NormalTest {
     }
 
     @Test
-    public void validationTest() {
-        log.error("开始");
-        User3 user = new User3();
-        user.setName("123");
-        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        Validator validator = validatorFactory.getValidator();
+    public void test12345() throws IOException {
+        String json = "{\n" + "  \"checked\": false,\n" + "  \"dimensions\": {\n" + "    \"width\": 5,\n"
+            + "    \"height\": 10\n" + "  },\n" + "  \"id\": 1,\n" + "  \"name\": \"das\",\n" + "  \"price\": 24,\n"
+            + "  \"tags\": [],\n" + "  \"person\": true\n" + "}";
 
-        Set<ConstraintViolation<User3>> validate = validator.validate(user);
+        String jsonSchema = "{\n" + "  \"type\": \"object\",\n" + "  \"default\": {},\n" + "  \"required\": [\n"
+            + "    \"checked\",\n" + "    \"dimensions\",\n" + "    \"id\",\n" + "    \"name\",\n" + "    \"price\",\n"
+            + "    \"tags\"\n" + "  ],\n" + "  \"additionalProperties\": false,\n" + "  \"properties\": {\n"
+            + "    \"checked\": {\n" + "      \"$id\": \"#/properties/checked\",\n" + "      \"type\": \"boolean\",\n"
+            + "      \"title\": \"The Checked Schema\",\n"
+            + "      \"description\": \"An explanation about the purpose of this instance.\",\n"
+            + "      \"default\": false,\n" + "      \"examples\": [\n" + "        false\n" + "      ]\n" + "    },\n"
+            + "    \"dimensions\": {\n" + "      \"$id\": \"#/properties/dimensions\",\n"
+            + "      \"type\": \"object\",\n" + "      \"title\": \"The Dimensions Schema\",\n"
+            + "      \"description\": \"An explanation about the purpose of this instance.\",\n"
+            + "      \"default\": {},\n" + "      \"examples\": [\n" + "        {\n" + "          \"height\": 10,\n"
+            + "          \"width\": 5\n" + "        }\n" + "      ],\n" + "      \"required\": [\n"
+            + "        \"width\",\n" + "        \"height\"\n" + "      ],\n" + "      \"properties\": {\n"
+            + "        \"width\": {\n" + "          \"$id\": \"#/properties/dimensions/properties/width\",\n"
+            + "          \"type\": \"integer\",\n" + "          \"title\": \"The Width Schema\",\n"
+            + "          \"description\": \"An explanation about the purpose of this instance.\",\n"
+            + "          \"default\": 0,\n" + "          \"examples\": [\n" + "            5\n" + "          ]\n"
+            + "        },\n" + "        \"height\": {\n"
+            + "          \"$id\": \"#/properties/dimensions/properties/height\",\n"
+            + "          \"type\": \"integer\",\n" + "          \"title\": \"The Height Schema\",\n"
+            + "          \"description\": \"An explanation about the purpose of this instance.\",\n"
+            + "          \"default\": 0,\n" + "          \"examples\": [\n" + "            10\n" + "          ]\n"
+            + "        }\n" + "      }\n" + "    },\n" + "    \"id\": {\n" + "      \"$id\": \"#/properties/id\",\n"
+            + "      \"type\": \"integer\",\n" + "      \"title\": \"The Id Schema\",\n"
+            + "      \"description\": \"An explanation about the purpose of this instance.\",\n"
+            + "      \"default\": 0,\n" + "      \"examples\": [\n" + "        1\n" + "      ]\n" + "    },\n"
+            + "    \"name\": {\n" + "      \"type\": [\n" + "        \"string\",\n" + "        \"null\"\n"
+            + "      ],\n" + "      \"pattern\": \"yyyyMMdd\",\n" + "      \"maxLength\": 6\n" + "    },\n"
+            + "    \"price\": {\n" + "      \"type\": \"number\",\n" + "      \"maximum\": 20\n" + "    },\n"
+            + "    \"tags\": {\n" + "      \"$id\": \"#/properties/tags\",\n" + "      \"type\": \"array\",\n"
+            + "      \"title\": \"The Tags Schema\",\n"
+            + "      \"description\": \"An explanation about the purpose of this instance.\",\n"
+            + "      \"default\": [],\n" + "      \"examples\": [\n" + "        [\n" + "          \"home\",\n"
+            + "          \"green\"\n" + "        ]\n" + "      ],\n" + "      \"items\": {\n"
+            + "        \"$id\": \"#/properties/tags/items\",\n" + "        \"type\": \"string\",\n"
+            + "        \"title\": \"The Items Schema\",\n"
+            + "        \"description\": \"An explanation about the purpose of this instance.\",\n"
+            + "        \"default\": \"\"\n" + "      }\n" + "    },\n" + "    \"person\": {\n"
+            + "      \"type\": \"boolean\"\n" + "    }\n" + "  }\n" + "}";
 
-        for (ConstraintViolation<User3> user3ConstraintViolation : validate) {
-            log.error("{}", user3ConstraintViolation.getMessage());
-        }
+        JsonSchemaUtil.validateJsonBySchema(json, jsonSchema);
+    }
+
+    @Test
+    public void test321() {
+        URL resource = NormalTest.class.getResource("/abc/1.txt");
+
     }
 
     @Test
