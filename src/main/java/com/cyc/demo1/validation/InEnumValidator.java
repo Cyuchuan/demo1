@@ -1,5 +1,7 @@
 package com.cyc.demo1.validation;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.lang.reflect.Method;
@@ -22,14 +24,26 @@ public class InEnumValidator implements ConstraintValidator<InEnum, String> {
     public boolean isValid(String value, ConstraintValidatorContext context) {
         try {
             Method values = enumClass.getDeclaredMethod("values");
-            Method declaredMethod = enumClass.getDeclaredMethod(methodName);
+
+            Method declaredMethod = null;
+            if (StringUtils.isNotBlank(methodName)) {
+                declaredMethod = enumClass.getDeclaredMethod(methodName);
+
+            }
 
             Enum[] enums = (Enum[])values.invoke(enumClass);
 
             for (Enum anEnum : enums) {
-                Object invoke = declaredMethod.invoke(anEnum);
+                Object invokeValue;
+                if (declaredMethod == null) {
+                    invokeValue = anEnum.name();
 
-                if (invoke.equals(value)) {
+                } else {
+                    invokeValue = declaredMethod.invoke(anEnum);
+
+                }
+
+                if (invokeValue != null && invokeValue.equals(value)) {
                     return true;
                 }
 
