@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @ErrorPrefixField({"id", "fileName"})
-public class Pojo {
+public class Pojo<T> {
     private String notValidation;
 
     @ValidationField

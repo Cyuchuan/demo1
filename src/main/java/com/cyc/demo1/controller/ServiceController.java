@@ -5,12 +5,14 @@ import javax.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cyc.demo1.dto.Result;
 import com.cyc.demo1.entity.User;
 import com.cyc.demo1.entity.User3;
+import com.google.common.collect.Lists;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,4 +80,17 @@ public class ServiceController {
         throw new RuntimeException("出现了运行时异常");
     }
 
+    @RequestMapping("nlu")
+    public NluTextRecognizeResponse nlu(@RequestBody NluTextRecognizeRequest nluTextRecognizeRequest) {
+        log.error("{}", nluTextRecognizeRequest);
+        NluTextRecognizeResponse nluTextRecognizeResponse = new NluTextRecognizeResponse();
+        nluTextRecognizeResponse.setCode(0);
+        nluTextRecognizeResponse.setMsg("312");
+        nluTextRecognizeResponse.setAsrCorrect("312");
+        nluTextRecognizeResponse.setNluRecognitionType("321");
+        nluTextRecognizeResponse.setLongSentenceFix("321");
+        nluTextRecognizeResponse.setNluRuleIdList(Lists.newArrayList("3213"));
+
+        return nluTextRecognizeResponse;
+    }
 }

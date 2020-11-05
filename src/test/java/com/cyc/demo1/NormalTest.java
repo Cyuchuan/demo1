@@ -37,6 +37,7 @@ import com.cyc.demo1.dto.Pojo1;
 import com.cyc.demo1.eventservice.A;
 import com.cyc.demo1.eventservice.B;
 import com.cyc.demo1.exception.NoBatchProcessException;
+import com.cyc.demo1.invoker.ServiceInterface;
 import com.cyc.demo1.jdkproxy.MathHandle;
 import com.cyc.demo1.jdkproxy.MathService;
 import com.cyc.demo1.jdkproxy.MathServiceImp;
@@ -46,6 +47,8 @@ import com.cyc.demo1.random.RandomUtil;
 import com.cyc.demo1.util.CompressorUtil;
 import com.cyc.demo1.validation.JsonSchemaUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -329,69 +332,53 @@ public class NormalTest {
     }
 
     @Test
+    public void test3214() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("12341564654");
+
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        log.error("{}", stringBuilder.toString());
+    }
+
+    @Test
     public void testValidation() {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
         Pojo1 pojo1 = new Pojo1();
         pojo1.setNotValidation1(null);
         pojo1.setId1(null);
-        pojo1.setFileName1("13");
+        pojo1.setFileName1("23");
         pojo1.setFileType1(null);
         pojo1.setDate1("");
 
-        Set<ConstraintViolation<Pojo1>> validate = validator.validate(pojo1);
+        Set<ConstraintViolation<Pojo1>> validate = validator.validate(pojo1, ServiceInterface.class);
         log.error("{}", validate);
     }
 
     @Test
     public void test12345() throws Exception {
-        String json = "{\n" + "  \"checked\": false,\n" + "  \"dimensions\": {\n" + "    \"width\": 5,\n"
-            + "    \"height\": 10\n" + "  },\n" + "  \"id\": 1,\n" + "  \"name\": null,\n" + "  \"price\": 12,\n"
-            + "  \"tags\": [],\n" + "  \"person\": true,\n" + "  \"abc\": null\n" + "}";
+        String json = "{\n" + "\"name\":\"张三\"}";
 
-        String jsonSchema = "{\n" + "  \"type\": \"object\",\n" + "  \"default\": {},\n" + "  \"required\": [\n"
-            + "    \"checked\",\n" + "    \"dimensions\",\n" + "    \"id\",\n" + "    \"name\",\n" + "    \"price\",\n"
-            + "    \"tags\"\n" + "  ],\n" + "  \"additionalProperties\": false,\n" + "  \"properties\": {\n"
-            + "    \"checked\": {\n" + "      \"$id\": \"#/properties/checked\",\n" + "      \"type\": \"boolean\",\n"
-            + "      \"title\": \"The Checked Schema\",\n"
-            + "      \"description\": \"An explanation about the purpose of this instance.\",\n"
-            + "      \"default\": false,\n" + "      \"examples\": [\n" + "        false\n" + "      ]\n" + "    },\n"
-            + "    \"dimensions\": {\n" + "      \"$id\": \"#/properties/dimensions\",\n"
-            + "      \"type\": \"object\",\n" + "      \"title\": \"The Dimensions Schema\",\n"
-            + "      \"description\": \"An explanation about the purpose of this instance.\",\n"
-            + "      \"default\": {},\n" + "      \"examples\": [\n" + "        {\n" + "          \"height\": 10,\n"
-            + "          \"width\": 5\n" + "        }\n" + "      ],\n" + "      \"required\": [\n"
-            + "        \"width\",\n" + "        \"height\"\n" + "      ],\n" + "      \"properties\": {\n"
-            + "        \"width\": {\n" + "          \"$id\": \"#/properties/dimensions/properties/width\",\n"
-            + "          \"type\": \"integer\",\n" + "          \"title\": \"The Width Schema\",\n"
-            + "          \"description\": \"An explanation about the purpose of this instance.\",\n"
-            + "          \"default\": 0,\n" + "          \"examples\": [\n" + "            5\n" + "          ]\n"
-            + "        },\n" + "        \"height\": {\n"
-            + "          \"$id\": \"#/properties/dimensions/properties/height\",\n"
-            + "          \"type\": \"integer\",\n" + "          \"title\": \"The Height Schema\",\n"
-            + "          \"description\": \"An explanation about the purpose of this instance.\",\n"
-            + "          \"default\": 0,\n" + "          \"examples\": [\n" + "            10\n" + "          ]\n"
-            + "        }\n" + "      }\n" + "    },\n" + "    \"id\": {\n" + "      \"$id\": \"#/properties/id\",\n"
-            + "      \"type\": \"integer\",\n" + "      \"title\": \"The Id Schema\",\n"
-            + "      \"description\": \"An explanation about the purpose of this instance.\",\n"
-            + "      \"default\": 0,\n" + "      \"examples\": [\n" + "        1\n" + "      ]\n" + "    },\n"
-            + "    \"name\": {\n" + "      \"type\": [\n" + "        \"string\",\n" + "        \"null\"\n"
-            + "      ],\n" + "      \"pattern\": \"yyyyMMdd\",\n" + "      \"maxLength\": 6\n" + "    },\n"
-            + "    \"price\": {\n" + "      \"type\": \"number\",\n" + "      \"maximum\": 20\n" + "    },\n"
-            + "    \"tags\": {\n" + "      \"$id\": \"#/properties/tags\",\n" + "      \"type\": \"array\",\n"
-            + "      \"title\": \"The Tags Schema\",\n"
-            + "      \"description\": \"An explanation about the purpose of this instance.\",\n"
-            + "      \"default\": [],\n" + "      \"examples\": [\n" + "        [\n" + "          \"home\",\n"
-            + "          \"green\"\n" + "        ]\n" + "      ],\n" + "      \"items\": {\n"
-            + "        \"$id\": \"#/properties/tags/items\",\n" + "        \"type\": \"string\",\n"
-            + "        \"title\": \"The Items Schema\",\n"
-            + "        \"description\": \"An explanation about the purpose of this instance.\",\n"
-            + "        \"default\": \"\"\n" + "      }\n" + "    },\n" + "    \"person\": {\n"
-            + "      \"type\": \"boolean\"\n" + "    }\n" + "  }\n" + "}";
+        String jsonSchema =
+            "{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"integer\"}},\"required\":[\"name\",\"age\"]}";
 
         List<String> properties = JsonSchemaUtil.getProperties(jsonSchema);
 
         JsonSchemaUtil.validateJsonBySchema(json, jsonSchema);
+    }
+
+    @Test
+    public void test00() throws Exception {
+        Cache<String, String> myMap =
+            CacheBuilder.newBuilder().expireAfterAccess(2L, TimeUnit.SECONDS).expireAfterWrite(3L, TimeUnit.SECONDS)
+                .concurrencyLevel(6).initialCapacity(100).maximumSize(1000).softValues().build();
+
+        myMap.put("name", "张三");
+        System.out.println(myMap.getIfPresent("name"));
+        Thread.sleep(4000L);
+
+        System.out.println(myMap.getIfPresent("name"));
+
     }
 
     @Test

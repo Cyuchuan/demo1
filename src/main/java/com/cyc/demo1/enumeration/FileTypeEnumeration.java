@@ -1,5 +1,7 @@
 package com.cyc.demo1.enumeration;
 
+import org.hibernate.validator.constraints.Email;
+
 import lombok.Getter;
 
 @Getter
@@ -14,7 +16,7 @@ public enum FileTypeEnumeration {
         this.desc = desc;
     }
 
-    public static FileTypeEnumeration getEnumByValue(String value) {
+    public static FileTypeEnumeration getEnumByValue(@Email String value) {
         FileTypeEnumeration[] values = values();
         for (FileTypeEnumeration fileTypeEnumeration : values) {
             if (fileTypeEnumeration.getValue().equals(value)) {
